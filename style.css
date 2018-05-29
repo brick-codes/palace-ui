@@ -1,0 +1,31 @@
+div#other-players {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+}
+
+div.player {
+    text-align: center;
+    padding: 20px;
+}
+
+div.my-table {
+    text-align: center;
+    padding: 20px;
+}
+
+div.hand-cards {
+    text-align: center;
+    background-color: white;
+    padding: 20px;
+}
+
+div#my-cards {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+div#card-stack {
+    text-align: center;
+}
