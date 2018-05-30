@@ -1,11 +1,14 @@
 div#other-players {
     display: flex;
-    flex-flow: row wrap;
+    flex-flow: row nowrap;
     justify-content: center;
+    min-width: 100%;
+    overflow-x: auto;
 }
 
 div.player {
     text-align: center;
+    min-width: 200px;
     padding: 20px;
 }
 
@@ -16,16 +19,17 @@ div.my-table {
 
 div.hand-cards {
     text-align: center;
-    background-color: white;
+    flex-grow: 2;
     padding: 20px;
 }
 
 div#my-cards {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
 }
 
 div#card-stack {
     text-align: center;
+    padding: 25px;
 }
