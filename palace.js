@@ -2,6 +2,7 @@ cards = {"hands":[6,6,6,6],"face_up_three":[[{"value":"Eight","suit":"Diamonds"}
 
 numPlayers = cards['hands'].length;
 playerName = 'Richard';
+playerId = 2;
 setNum = 3;
 backNum = 1;
 
@@ -9,18 +10,23 @@ window.onload = update;
 
 function update() {
 
+    var parentElement = document.getElementById('body');
+
+    /////////////////
+    // TABLE CARDS //
+    /////////////////
+
+    newHtml += '<div id="other-players">';
+
     for (i = 0; i < numPlayers; i++) {
  
-        var parentElement = document.getElementById('other-players');
+        if (i != playerId) { // if player is not you
 
-        if (true) { // if player is not you
-
-            newHtml = '<h3>' + playerName + '</h3><p>' + cards['hands'][i] + ' cards in hand</p>'
+            newHtml += '<div class="player" id="player-' + i + '">';
+            newHtml += '<h3>' + playerName + '</h3><p>' + cards['hands'][i] + ' cards in hand</p>';
 
             for (j = 0; j < cards['face_up_three'][i].length; j++) {
-                newHtml += '<img src="img/set-' + setNum + '/' + getCardName(cards['face_up_three'][i][j]) + '.svg"';
-                newHtml += ' title="' + cards['face_up_three'][i][j]['value'].toLowerCase() + ' of ';
-                newHtml += cards['face_up_three'][i][j]['suit'].toLowerCase() + '" width="60px">';
+                newHtml += generateCardHtml(cards['face_up_three'][i][j], setNum, 60);
             }
 
             newHtml += '</br>';
@@ -29,14 +35,47 @@ function update() {
                 newHtml += '<img src="img/backs/back-' + backNum + '.svg" width="60px">';
             }
 
-            document.getElementById('player-' + i).innerHTML = newHtml;
+            newHtml += '</div>';
         }
     }
+
+    newHtml += '</div>';
+
+    ////////////////
+    // CARD STACK //
+    ////////////////
+
+    newHtml += '<div id="card-stack">';
+    newHtml += generateCardHtml(cards['top_card'], setNum, 150);
+    newHtml += '</div>';
+
+    //////////////////
+    // PLAYER CARDS //
+    //////////////////
+
+    newHtml += '<div id="my-cards">';
+
+    newHtml += '<div class="my-table" id="player-' + playerId + '">';
+
+    // player face-up cards
+    // player face-down cards
+
+    newHtml += '</div>';
+
+    newHtml += '<div class="hand-cards" id="player-' + playerId + '">';
+
+    // player's hand cards
+
+    newHtml += '</div>';
+
+    newHtml += '</div>';
+
+    document.getElementById('body').innerHTML = newHtml;
 }
 
 function getCardName(card) {
 
-    cardName = ''
+    cardName = '';
 
     switch (card['value']) {
         case 'Two':
@@ -81,4 +120,11 @@ function getCardName(card) {
     }
 
     return cardName + card['suit'][0];
+}
+
+function generateCardHtml(card, setNum, width) {
+    html  = '<img src="img/set-' + setNum + '/' + getCardName(card) + '.svg"';
+    html += ' title="' + card['value'].toLowerCase() + ' of ';
+    html += card['suit'].toLowerCase() + '" width="' + width + 'px">';
+    return html;
 }
