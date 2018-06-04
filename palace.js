@@ -17,7 +17,7 @@ function update() {
     // TABLE CARDS //
     /////////////////
 
-    newHtml += '<div id="other-players">';
+    newHtml = '<div id="other-players">';
 
     for (i = 0; i < numPlayers; i++) {
         if (i != myId) { // if player is not you
@@ -44,13 +44,13 @@ function update() {
     newHtml += '<div id="my-cards">';
 
     // player's table cards
-    newHtml += '<div class="my-table" id="player-' + playerId + '">';
+    newHtml += '<div class="my-table" id="player-' + myId + '">';
     newHtml += generateTableHtml(myId, myName, myId, setNum, backNum, 100);
     newHtml += '</div>';
 
 
     // player's hand cards
-    newHtml += '<div class="hand-cards" id="player-' + playerId + '">';
+    newHtml += '<div class="hand-cards" id="player-' + myId + '">';
 
     newHtml += '</div>';
 
@@ -78,6 +78,8 @@ function generateTableHtml(playerId, playerName, myId, setNum, backNum, cardWidt
     }
 
     html += '</div>';
+
+    return html;
 }
 
 function generateCardHtml(card, setNum, width) {
