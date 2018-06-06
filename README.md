@@ -3,6 +3,17 @@ UI for Palace card game (currently only web). For the backend, see [palace-serve
 [Palace](https://en.wikipedia.org/wiki/Shithead_(card_game)) is known by many other names (some of which are rather crude), and many variations of the basic rules exist. Our version of Palace is just one of these variations.
 
 ## Attributions
+
+### Software
+
+This project would not be possible (or at least not nearly as good) without the use of free open source software (FOSS):
+
+| Software                                                            | License                                 |
+| ------------------------------------------------------------------- | --------------------------------------- |
+| [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-DataTables) | [MIT](./lib/vanilla-datatables/LICENSE) |
+
+### Images
+
 This project uses images from several sources, which are listed below.
 
 | Description        | Source                                                                                | License       |
