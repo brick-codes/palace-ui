@@ -23,3 +23,9 @@ This project uses images from several sources, which are listed below.
 | Card faces - set 3 | <https://en.wikipedia.org/wiki/File:Atlasnye_playing_cards_deck.svg>                  | Public domain |
 | Card back 1        | <https://commons.wikimedia.org/wiki/File:Atlas_deck_card_back_blue_and_brown.svg>     | Public domain |
 | Card back 2        | <https://commons.wikimedia.org/wiki/File:Atlas_deck_card_back_green_and_dark_red.svg> | Public domain |
+
+### Font
+
+| Font                                      | License                               |
+| ----------------------------------------- | ------------------------------------- |
+| [Bungee](https://github.com/djrrb/Bungee) | [SIL Open Font](./lib/bungee/LICENSE) |
