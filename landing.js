@@ -1,12 +1,8 @@
+somethingLoaded = false;
 playerToken = '';
 lobbyToken = '';
 
-var socket = new WebSocket("ws://dev.brick.codes:3012");
-
-var listLobbiesBlob = new Blob(
-    [JSON.stringify("ListLobbies")],
-    {type:'application/json'}
-);
+socket = new WebSocket("ws://dev.brick.codes:3012");
 
 var newLobbyBlob = new Blob(
     [JSON.stringify(
@@ -22,26 +18,81 @@ var newLobbyBlob = new Blob(
     {type:'application/json'}
 );
 
-socket.addEventListener('open', function (event) {
-    socket.send(newLobbyBlob);
-});
+function init() {
+    if (somethingLoaded) {
+        socket.send(newLobbyBlob);
+        socket.send(newLobbyBlob);
+        socket.send(newLobbyBlob);
+        socket.send(newLobbyBlob);
+        socket.send(newLobbyBlob);
+        retrieveLobbies();
+    }  else {
+        somethingLoaded = true;
+    }
+}
+
+socket.onopen = init;
+window.onload = init;
 
 socket.addEventListener('message', function (event) {
     var reader = new FileReader();
     reader.addEventListener("loadend", function() {
-        playerToken = reader.result['player_id'];
-        lobbyToken  = reader.result['lobby_id'];
+        object = JSON.parse(reader.result);
+        if ('NewLobbyResponse' in object) { 
+            playerToken = object['player_id'];
+            lobbyToken  = object['lobby_id'];
+        } else if ('JoinLobbyResponse' in object) {
+            playerToken = object['player_id'];
+        } else if ('LobbyList' in object) {
+            updateTable(object['LobbyList']);
+        } else {
+            console.log("Unknown object: " + object);
+        }
     });
     reader.readAsText(event.data);
 });
 
-document.onload = update();
+window.setInterval(retrieveLobbies, 30000);
 
-function update() {
+function retrieveLobbies() {
 
-    console.log(document.querySelector("#lobbies"));
+    var listLobbiesBlob = new Blob(
+        [JSON.stringify("ListLobbies")],
+        {type:'application/json'}
+    );
+
+    socket.send(listLobbiesBlob);
+}
+
+function updateTable(lobbies) {
+
+    rows = [];
+
+    for (var i = 0; i < lobbies.length; i++) {
+        rows[i] = [
+            lobbies[i]['name'],
+            lobbies[i]['owner'],
+            '' + lobbies[i]['cur_players'] + '/' + lobbies[i]['max_players'],
+            lobbies[i]['has_password'],
+            lobbies[i]['age'],
+            lobbies[i]['started']
+        ];
+    }
+
+    var data = {
+        "headings": [
+            "Lobby Name",
+            "Lobby Owner",
+            "Number of Players",
+            "Public or Private",
+            "Lobby Age",
+            "In Progress",
+        ],
+        "data": rows
+    };
 
     var dataTable = new DataTable("#lobbies", {
+        data: data,
         searchable: true,
         perPageSelect: false,
         firstLast: true,
