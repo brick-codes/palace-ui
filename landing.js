@@ -46,7 +46,8 @@ socket.addEventListener('message', function (event) {
         } else if ('LobbyList' in object) {
             updateTable(object['LobbyList']);
         } else {
-            console.log("Unknown object: " + object);
+            console.log("Unknown object: ");
+            console.log(object);
         }
     });
     reader.readAsText(event.data);

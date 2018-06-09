@@ -1,7 +1,18 @@
 body#landing {
     display: flex;
-    flex-flow: row nowrap;
-    justify-content: space-around;
+    flex-flow: row wrap;
+    justify-content: center;
+}
+
+@font-face {
+    font-family: 'Bungee Shade';
+    src: url('./lib/bungee/BungeeShade-Regular.ttf');
+}
+
+header {
+    font-family: 'Bungee Shade', cursive;
+    font-size: 800%;
+    width: 100%;
 }
 
 div.landing {
