@@ -4,27 +4,9 @@ lobbyToken = '';
 
 socket = new WebSocket("ws://dev.brick.codes:3012");
 
-var newLobbyBlob = new Blob(
-    [JSON.stringify(
-        {
-            "NewLobby": {
-                "max_players" : 4,
-                "password"    : "",
-                "lobby_name"  : "brickhouse",
-                "player_name" : "matt"
-            }
-        }
-    )],
-    {type:'application/json'}
-);
-
 function init() {
     if (somethingLoaded) {
-        socket.send(newLobbyBlob);
-        socket.send(newLobbyBlob);
-        socket.send(newLobbyBlob);
-        socket.send(newLobbyBlob);
-        socket.send(newLobbyBlob);
+        loadEventListeners();
         retrieveLobbies();
     }  else {
         somethingLoaded = true;
@@ -41,6 +23,7 @@ socket.addEventListener('message', function (event) {
         if ('NewLobbyResponse' in object) { 
             playerToken = object['player_id'];
             lobbyToken  = object['lobby_id'];
+            retrieveLobbies();
         } else if ('JoinLobbyResponse' in object) {
             playerToken = object['player_id'];
         } else if ('LobbyList' in object) {
@@ -54,6 +37,31 @@ socket.addEventListener('message', function (event) {
 });
 
 window.setInterval(retrieveLobbies, 30000);
+
+function loadEventListeners() {
+
+    document.getElementById('private-checkbox').addEventListener('click', function() {
+        document.getElementById('password-input').disabled = !document.getElementById('private-checkbox').checked;
+    });
+
+    document.getElementById('create-lobby-button').addEventListener('click', function() {
+        var newLobbyBlob = new Blob(
+            [JSON.stringify(
+                {
+                    "NewLobby": {
+                        "max_players" : Number(document.getElementById('max-players-input').value),
+                        "password"    : document.getElementById('password-input').value,
+                        "lobby_name"  : document.getElementById('lobby-name-input').value,
+                        "player_name" : document.getElementById('owner-name-input').value
+                    }
+                }
+            )],
+            {type:'application/json'}
+        );
+
+        socket.send(newLobbyBlob);
+    });
+}
 
 function retrieveLobbies() {
 
