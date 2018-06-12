@@ -22,9 +22,13 @@ socket.addEventListener('message', function (event) {
     var reader = new FileReader();
     reader.addEventListener("loadend", function() {
         object = JSON.parse(reader.result);
-        if ('NewLobbyResponse' in object) { 
-            playerToken = object['player_id'];
-            lobbyToken  = object['lobby_id'];
+        if ('NewLobbyResponse' in object) {
+            if ('Ok' in object['NewLobbyResponse']) {
+                playerToken = object['NewLobbyResponse']['player_id'];
+                lobbyToken  = object['NewLobbyResponse']['lobby_id'];
+            } else {
+                window.alert("Error creating lobby.\nPlease make sure all fields are filled and try again.");
+            }
             retrieveLobbies();
         } else if ('JoinLobbyResponse' in object) {
             playerToken = object['player_id'];
@@ -47,21 +51,38 @@ function loadEventListeners() {
     });
 
     document.getElementById('create-lobby-button').addEventListener('click', function() {
-        var newLobbyBlob = new Blob(
-            [JSON.stringify(
-                {
-                    "NewLobby": {
-                        "max_players" : Number(document.getElementById('max-players-input').value),
-                        "password"    : document.getElementById('password-input').value,
-                        "lobby_name"  : document.getElementById('lobby-name-input').value,
-                        "player_name" : document.getElementById('owner-name-input').value
-                    }
-                }
-            )],
-            {type:'application/json'}
-        );
 
-        socket.send(newLobbyBlob);
+        var maxPlayers = Number(document.getElementById('max-players-input').value);
+        var lobbyName = document.getElementById('lobby-name-input').value;
+        var playerName = document.getElementById('owner-name-input').value;
+        if (document.getElementById('private-checkbox').checked) {
+            var password = document.getElementById('password-input').value;
+        } else {
+            var password = '';
+        }
+
+        if (lobbyName == '' || playerName == '') {
+            window.alert('Error creating lobby.\nPlease make sure to fill out all required fields.');
+        } else if (maxPlayers < 2 || maxPlayers > 8) {
+            window.alert('Error creating lobby.\nPlease enter a max players amount between 2 and 8 (inclusive).');
+        } else if (document.getElementById('private-checkbox').checked && password == '') {
+            window.alert('Error creating lobby.\nFor a private lobby, please enter a password.');
+        } else {
+            var newLobbyBlob = new Blob(
+                [JSON.stringify(
+                    {
+                        "NewLobby": {
+                            "max_players" : maxPlayers,
+                            "password"    : password,
+                            "lobby_name"  : lobbyName,
+                            "player_name" : playerName
+                        }
+                    }
+                )],
+                {type:'application/json'}
+            );
+            socket.send(newLobbyBlob);
+        }
     });
 }
 
