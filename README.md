@@ -16,13 +16,14 @@ This project would not be possible (or at least not nearly as good) without the 
 
 This project uses images from several sources, which are listed below.
 
-| Description        | Source                                                                                | License       |
-| ------------------ | ------------------------------------------------------------------------------------- | ------------- |
-| Card faces - set 1 | <https://github.com/notpeter/Vector-Playing-Cards>                                    | Public domain |
-| Card faces - set 2 | <https://commons.wikimedia.org/wiki/File:English_pattern_playing_cards_deck.svg>      | Public domain |
-| Card faces - set 3 | <https://en.wikipedia.org/wiki/File:Atlasnye_playing_cards_deck.svg>                  | Public domain |
-| Card back 1        | <https://commons.wikimedia.org/wiki/File:Atlas_deck_card_back_blue_and_brown.svg>     | Public domain |
-| Card back 2        | <https://commons.wikimedia.org/wiki/File:Atlas_deck_card_back_green_and_dark_red.svg> | Public domain |
+| Description                                   | Source                                                                                | License                                      |
+| --------------------------------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Icons found in [this directory](./img/icons/) | [FontAwesome](https://fontawesome.com/)                                               | [CC BY 4.0](https://fontawesome.com/license) |
+| Card faces - set 1                            | <https://github.com/notpeter/Vector-Playing-Cards>                                    | Public domain                                |
+| Card faces - set 2                            | <https://commons.wikimedia.org/wiki/File:English_pattern_playing_cards_deck.svg>      | Public domain                                |
+| Card faces - set 3                            | <https://en.wikipedia.org/wiki/File:Atlasnye_playing_cards_deck.svg>                  | Public domain                                |
+| Card back 1                                   | <https://commons.wikimedia.org/wiki/File:Atlas_deck_card_back_blue_and_brown.svg>     | Public domain                                |
+| Card back 2                                   | <https://commons.wikimedia.org/wiki/File:Atlas_deck_card_back_green_and_dark_red.svg> | Public domain                                |
 
 ### Font
 

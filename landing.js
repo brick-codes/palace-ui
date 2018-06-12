@@ -42,7 +42,7 @@ socket.addEventListener('message', function (event) {
     reader.readAsText(event.data);
 });
 
-window.setInterval(retrieveLobbies, 5000);
+window.setInterval(retrieveLobbies, 60000);
 
 function loadEventListeners() {
 
@@ -122,9 +122,9 @@ function updateTable(lobbies) {
             lobbies[i]['name'],
             lobbies[i]['owner'],
             '' + lobbies[i]['cur_players'] + '/' + lobbies[i]['max_players'],
-            lobbies[i]['has_password'],
-            lobbies[i]['age'],
-            lobbies[i]['started']
+            lobbies[i]['has_password'] ? '<img class="table-icons" src="./img/icons/lock.svg">' : '<img class="table-icons" src="./img/icons/unlock.svg">',
+            getAgeString(lobbies[i]['age']),
+            lobbies[i]['started'] ? 'In Progress (spectate)' : 'Waiting to Begin'
         ];
     }
 
@@ -133,12 +133,30 @@ function updateTable(lobbies) {
             "Lobby Name",
             "Lobby Owner",
             "Number of Players",
-            "Public or Private",
+            "Password Protected?",
             "Lobby Age",
-            "In Progress",
+            "Game Status",
         ],
         "data": rows
     };
 
     createTable(data);
+
+    dataTable.columns().sort(5);
+}
+
+function getAgeString(age) {
+    if (age >= 31557600) {
+        return Math.floor((age / 31557600)) + " years";
+    } else if (age >= 2629800) {
+        return Math.floor((age / 2629800)) + " months";
+    } else if (age >= 86400) {
+        return Math.floor((age / 86400)) + " days";
+    } else if (age >= 3600) {
+        return Math.floor((age / 3600)) + " hours";
+    } else if (age >= 60) {
+        return Math.floor((age / 60)) + " minutes";
+    } else {
+        return Math.floor(age)  + " seconds";
+    }
 }

@@ -14,9 +14,9 @@ body#landing {
     src: url('./lib/bungee/Bungee-Regular.ttf');
 }
 
-div.header {
+div#header {
     font-family: 'Bungee Shade', cursive;
-    font-size: 800%;
+    font-size: 700%;
     text-align: center;
 }
 
@@ -24,8 +24,14 @@ h2 {
     font-family: 'Bungee', cursive;
 }
 
-div.landing {
-    padding: 50px;
+div#create-lobby {
+    padding-top: 25px;
+}
+
+div.lobby {
+    padding-bottom: 25px;
+    padding-left: 50px;
+    padding-right: 50px;
 }
 
 form#create-lobby-form {
@@ -73,4 +79,8 @@ div#my-cards {
 div#card-stack {
     text-align: center;
     padding: 25px;
+}
+
+img.table-icons {
+    width: 15px;
 }
