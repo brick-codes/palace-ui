@@ -16,37 +16,38 @@
 
   <body id="landing">
 
-    <header>
+    <div id="header" class="header">
       Palace
-    </header>
+    </div>
 
     <div id="lobby" class="landing">
 
-      <h2>
-        Play
-      </h2>
+      <h2>Create a Lobby:</h2>
 
       <p>
-        <h4>Create Lobby:</h4>
-        <form>
-          <p>
+        <form id="create-lobby-form">
+          <div class="create-lobby-item">
             Lobby Name: <input type="text" name="lobbyname" id="lobby-name-input" required="true">
-          </p>
-          <p>
+          </div>
+          <div class="create-lobby-item">
             Your Name: <input type="text" name="ownername" id="owner-name-input" required="true">
-          </p>
-          <p>
+          </div>
+          <div class="create-lobby-item">
             Max Players: <input id="max-players-input" type="number" name="maxplayers" min="2" max="8" step="1" required="true">
-          </p>
-          <p>
-            Private? <input type="checkbox" name="private" id='private-checkbox'>&nbsp;
-            Password: <input type="password" name="password" id='password-input'>
-          </p>
-          <button type="button" id="create-lobby-button">Create Lobby</button>
+          </div>
+          <div class="create-lobby-item">
+            Private? <input type="checkbox" name="private" id='private-checkbox'>
+          </div>
+          <div class="create-lobby-item">
+            Password: <input type="password" name="password" id='password-input' disabled>
+          </div>
+          <div class="create-lobby-item">
+            <button type="button" id="create-lobby-button">Create Lobby</button>
+          </div>
         </form>
       </p>
 
-      <h4>Join a Lobby:</h4>
+      <h2>Join a Lobby:</h2>
 
       <table id="lobbies">
       </table>

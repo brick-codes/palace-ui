@@ -1,7 +1,7 @@
 body#landing {
     display: flex;
-    flex-flow: row wrap;
-    justify-content: center;
+    flex-direction: column;
+    align-content: center;
 }
 
 @font-face {
@@ -9,15 +9,34 @@ body#landing {
     src: url('./lib/bungee/BungeeShade-Regular.ttf');
 }
 
-header {
+@font-face {
+    font-family: 'Bungee';
+    src: url('./lib/bungee/Bungee-Regular.ttf');
+}
+
+div.header {
     font-family: 'Bungee Shade', cursive;
     font-size: 800%;
-    width: 100%;
+    text-align: center;
+}
+
+h2 {
+    font-family: 'Bungee', cursive;
 }
 
 div.landing {
     padding: 50px;
-    flex: 1;
+}
+
+form#create-lobby-form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-content: space-between;
+}
+
+div.create-lobby-item {
+    padding: 10px;
 }
 
 div#other-players {

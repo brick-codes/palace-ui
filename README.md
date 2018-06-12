@@ -26,6 +26,7 @@ This project uses images from several sources, which are listed below.
 
 ### Font
 
-| Font                                      | License                               |
-| ----------------------------------------- | ------------------------------------- |
-| [Bungee](https://github.com/djrrb/Bungee) | [SIL Open Font](./lib/bungee/LICENSE) |
+| Font                                                    | License                               |
+| ------------------------------------------------------- | ------------------------------------- |
+| [Bungee Regular](https://github.com/djrrb/Bungee)       | [SIL Open Font](./lib/bungee/LICENSE) |
+| [Bungee Shade Regular](https://github.com/djrrb/Bungee) | [SIL Open Font](./lib/bungee/LICENSE) |
