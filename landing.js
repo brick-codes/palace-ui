@@ -1,4 +1,5 @@
 somethingLoaded = false;
+dataTable = null;
 playerToken = '';
 lobbyToken = '';
 
@@ -6,6 +7,7 @@ socket = new WebSocket("ws://dev.brick.codes:3012");
 
 function init() {
     if (somethingLoaded) {
+        createTable();
         loadEventListeners();
         retrieveLobbies();
     }  else {
@@ -36,7 +38,7 @@ socket.addEventListener('message', function (event) {
     reader.readAsText(event.data);
 });
 
-window.setInterval(retrieveLobbies, 30000);
+window.setInterval(retrieveLobbies, 5000);
 
 function loadEventListeners() {
 
@@ -73,7 +75,24 @@ function retrieveLobbies() {
     socket.send(listLobbiesBlob);
 }
 
+function createTable(data = []) {
+    dataTable = new DataTable("#lobbies", {
+        data: data,
+        searchable: true,
+        perPageSelect: false,
+        firstLast: true,
+        sortable: true,
+        labels: {
+            placeholder: 'Search for a lobby',
+            noRows: 'No lobbies found',
+            info: 'Showing {start} to {end} of {rows} lobbies'
+        }
+    });
+}
+
 function updateTable(lobbies) {
+
+    dataTable.destroy();
 
     rows = [];
 
@@ -100,16 +119,5 @@ function updateTable(lobbies) {
         "data": rows
     };
 
-    var dataTable = new DataTable("#lobbies", {
-        data: data,
-        searchable: true,
-        perPageSelect: false,
-        firstLast: true,
-        sortable: true,
-        labels: {
-            placeholder: 'Search for a lobby',
-            noRows: 'No lobbies found',
-            info: 'Showing {start} to {end} of {rows} lobbies'
-        }
-    });
+    createTable(data);
 }
