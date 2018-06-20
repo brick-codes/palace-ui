@@ -88,3 +88,9 @@ div#player-table-div {
 img.table-icons {
     width: 15px;
 }
+
+span#join-lobby {
+    cursor: pointer;
+    color: blue;
+    text-decoration: underline;
+}

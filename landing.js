@@ -46,25 +46,23 @@ socket.addEventListener('message', function (event) {
             }
             retrieveLobbies();
         } else if ('JoinLobbyResponse' in object) {
-            if ('JoinLobbyResponse' in object) {
-                if ('Ok' in object['JoinLobbyResponse']) {
-                    playerToken = object['JoinLobbyResponse']['Ok']['player_id'];
-                    enterLobbyScreen(object['JoinLobbyResponse']['Ok']['lobby_players'], false);
-                } else if ('Err' in object['JoinLobbyResponse']) {
-                    var errorResponseString = 'Error joining lobby: ';
-                    if ('LobbyNotFound' in object['JoinLobbyResponse']['Err']) {
-                        window.alert(errorResponseString + 'Lobby not found.');
-                    } else if ('LobbyFull' in object['JoinLobbyResponse']['Err']) {
-                        window.alert(errorResponseString + 'Lobby is full.');
-                    } else if ('BadPassword' in object['JoinLobbyResponse']['Err']) {
-                        window.alert(errorResponseString + 'Invalid password.');
-                    } else if ('GameInProgress' in object['JoinLobbyResponse']['Err']) {
-                        window.alert(errorResponseString + 'Game is in progress.');
-                    } else if ('EmptyPlayerName' in object['JoinLobbyResponse']['Err']) {
-                        window.alert(errorResponseString + 'Player name cannot be empty.');
-                    } else {
-                        window.alert(errorResponseString + 'Unknown error.');
-                    }
+            if ('Ok' in object['JoinLobbyResponse']) {
+                playerToken = object['JoinLobbyResponse']['Ok']['player_id'];
+                enterLobbyScreen(object['JoinLobbyResponse']['Ok']['lobby_players'], false);
+            } else if ('Err' in object['JoinLobbyResponse']) {
+                var errorResponseString = 'Error joining lobby: ';
+                if ('LobbyNotFound' in object['JoinLobbyResponse']['Err']) {
+                    window.alert(errorResponseString + 'Lobby not found.');
+                } else if ('LobbyFull' in object['JoinLobbyResponse']['Err']) {
+                    window.alert(errorResponseString + 'Lobby is full.');
+                } else if ('BadPassword' in object['JoinLobbyResponse']['Err']) {
+                    window.alert(errorResponseString + 'Invalid password.');
+                } else if ('GameInProgress' in object['JoinLobbyResponse']['Err']) {
+                    window.alert(errorResponseString + 'Game is in progress.');
+                } else if ('EmptyPlayerName' in object['JoinLobbyResponse']['Err']) {
+                    window.alert(errorResponseString + 'Player name cannot be empty.');
+                } else {
+                    window.alert(errorResponseString + 'Unknown error.');
                 }
             }
         } else if ('ListLobbiesResponse' in object) {
@@ -124,7 +122,7 @@ function loadEventListeners() {
 
     document.getElementById('lobbies-table').addEventListener('click', function(event) {
 
-        if (event.target && event.target.matches('a#join-lobby')) {
+        if (event.target && event.target.matches('span#join-lobby')) {
 
             playerName = prompt("Please enter your name:", "");
 
@@ -179,11 +177,17 @@ function createLobbiesTable(data = []) {
 
 function createPlayerTable(players = []) {
 
+    var rows = [];
+
+    for (var i = 0; i < players.length; i++) {
+        rows[i] = [players[i]];
+    }
+
     var data = {
         "headings": [
             "Player Name"
         ],
-        "data": players
+        "data": rows
     };
 
     playerDataTable = new DataTable("#player-table", {
@@ -207,7 +211,7 @@ function updateLobbiesTable(lobbies) {
 
     for (var i = 0; i < lobbies.length; i++) {
         rows[i] = [
-            '<a href id="join-lobby" lobby-id="' + lobbies[i]['lobby_id'] + '" password-protected="' + lobbies[i]['has_password'] + '">' + lobbies[i]['name'] + '</a>',
+            '<span id="join-lobby" lobby-id="' + lobbies[i]['lobby_id'] + '" password-protected="' + lobbies[i]['has_password'] + '">' + lobbies[i]['name'] + '</span>',
             lobbies[i]['owner'],
             '' + lobbies[i]['cur_players'] + '/' + lobbies[i]['max_players'],
             lobbies[i]['has_password'] ? '<img class="table-icons" src="./img/icons/lock.svg">' : '<img class="table-icons" src="./img/icons/unlock.svg">',
@@ -234,7 +238,7 @@ function updateLobbiesTable(lobbies) {
 }
 
 function updatePlayerTable(newPlayerName) {
-    playerDataTable.rows().add(newPlayerName);
+    playerDataTable.rows().add([newPlayerName]);
 }
 
 function enterLobbyScreen(players, isLobbyOwner = false) {
