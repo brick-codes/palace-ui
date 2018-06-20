@@ -26,14 +26,44 @@ socket.addEventListener('message', function (event) {
         object = JSON.parse(reader.result);
         if ('NewLobbyResponse' in object) {
             if ('Ok' in object['NewLobbyResponse']) {
-                playerToken = object['NewLobbyResponse']['player_id'];
-                lobbyToken  = object['NewLobbyResponse']['lobby_id'];
-                enterLobbyScreen(true);
-            } else {
-                window.alert("Error creating lobby.\nPlease make sure all fields are filled and try again.");
+                playerToken = object['NewLobbyResponse']['Ok']['player_id'];
+                lobbyToken  = object['NewLobbyResponse']['Ok']['lobby_id'];
+                enterLobbyScreen([], true);
+            } else if ('Err' in object['NewLobbyResponse']) {
+                var errorResponseString = 'Error creating lobby: ';
+                if ('LessThanTwoMaxPlayers' in object['NewLobbyResponse']['Err']) {
+                    window.alert(errorResponseString + 'Max players must be at least 2.');
+                } else if ('EmptyLobbyName' in object['NewLobbyResponse']['Err']) {
+                    window.alert(errorResponseString + 'Lobby name cannot be empty.');
+                } else if ('EmptyPlayerName' in object['NewLobbyResponse']['Err']) {
+                    window.alert(errorResponseString + 'Player name cannot be empty.');
+                } else {
+                    window.alert(errorResponseString + 'Unknown error.');
+                }
             }
             retrieveLobbies();
         } else if ('JoinLobbyResponse' in object) {
+            if ('JoinLobbyResponse' in object) {
+                if ('Ok' in object['JoinLobbyResponse']) {
+                    playerToken = object['JoinLobbyResponse']['Ok']['player_id'];
+                    enterLobbyScreen(object['JoinLobbyResponse']['Ok']['lobby_players'], false);
+                } else if ('Err' in object['JoinLobbyResponse']) {
+                    var errorResponseString = 'Error joining lobby: ';
+                    if ('LobbyNotFound' in object['JoinLobbyResponse']['Err']) {
+                        window.alert(errorResponseString + 'Lobby not found.');
+                    } else if ('LobbyFull' in object['JoinLobbyResponse']['Err']) {
+                        window.alert(errorResponseString + 'Lobby is full.');
+                    } else if ('BadPassword' in object['JoinLobbyResponse']['Err']) {
+                        window.alert(errorResponseString + 'Invalid password.');
+                    } else if ('GameInProgress' in object['JoinLobbyResponse']['Err']) {
+                        window.alert(errorResponseString + 'Game is in progress.');
+                    } else if ('EmptyPlayerName' in object['JoinLobbyResponse']['Err']) {
+                        window.alert(errorResponseString + 'Player name cannot be empty.');
+                    } else {
+                        window.alert(errorResponseString + 'Unknown error.');
+                    }
+                }
+            }
             playerToken = object['player_id'];
             enterLobbyScreen(false);
         } else if ('ListLobbiesResponse' in object) {
