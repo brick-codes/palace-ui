@@ -5,7 +5,8 @@ playerToken = '';
 lobbyToken = '';
 playerName = '';
 
-socket = new WebSocket("ws://dev.brick.codes:3012");
+//socket = new WebSocket("ws://dev.brick.codes:3012");
+socket = new WebSocket("ws://192.168.1.12:3012");
 
 function init() {
     if (somethingLoaded) {
@@ -24,6 +25,8 @@ socket.addEventListener('message', function (event) {
     var reader = new FileReader();
     reader.addEventListener("loadend", function() {
         object = JSON.parse(reader.result);
+        console.log('Message received from server: ');
+        console.log(object);
         if ('NewLobbyResponse' in object) {
             if ('Ok' in object['NewLobbyResponse']) {
                 playerToken = object['NewLobbyResponse']['Ok']['player_id'];
@@ -64,10 +67,10 @@ socket.addEventListener('message', function (event) {
                     }
                 }
             }
-            playerToken = object['player_id'];
-            enterLobbyScreen(false);
         } else if ('ListLobbiesResponse' in object) {
             updateLobbiesTable(object['ListLobbiesResponse']);
+        } else if ('PlayerJoinEvent' in object) {
+            updatePlayerTable(object['PlayerJoinEvent']['new_player_name']);
         } else {
             console.log("Unknown object: ");
             console.log(object);
@@ -174,7 +177,15 @@ function createLobbiesTable(data = []) {
     });
 }
 
-function createPlayerTable(data = []) {
+function createPlayerTable(players = []) {
+
+    var data = {
+        "headings": [
+            "Player Name"
+        ],
+        "data": players
+    };
+
     playerDataTable = new DataTable("#player-table", {
         data: data,
         searchable: false,
@@ -222,27 +233,11 @@ function updateLobbiesTable(lobbies) {
     lobbiesDataTable.columns().sort(5);
 }
 
-function updatePlayerTable(players) {
-
-    playerDataTable.destroy();
-
-    for (var i = 0; i < players.length; i++) {
-        rows[i] = [
-            players[i]
-        ]
-    }
-
-    var data = {
-        "headings": [
-            "Player Name"
-        ],
-        "data": rows
-    }
-
-    createPlayerTable(data);
+function updatePlayerTable(newPlayerName) {
+    playerDataTable.rows().add(newPlayerName);
 }
 
-function enterLobbyScreen(isLobbyOwner = false) {
+function enterLobbyScreen(players, isLobbyOwner = false) {
 
     document.getElementById('create-lobby').remove();
     document.getElementById('lobbies-table-div').style.display = 'none';
@@ -250,7 +245,7 @@ function enterLobbyScreen(isLobbyOwner = false) {
     document.getElementById('table-header').innerHTML = 'Lobby: Waiting for Game to Begin';
     document.getElementById('table-header').style.textAlign = 'center';
 
-    createPlayerTable();
+    createPlayerTable(players);
     updatePlayerTable([playerName]);
     document.getElementById('player-table-div').style.display = 'block';
 
