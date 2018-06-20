@@ -81,6 +81,10 @@ div#card-stack {
     padding: 25px;
 }
 
+div#player-table-div {
+    display: none;
+}
+
 img.table-icons {
     width: 15px;
 }

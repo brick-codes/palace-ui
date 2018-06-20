@@ -1,13 +1,15 @@
 somethingLoaded = false;
-dataTable = null;
+lobbiesDataTable = null;
+playerDataTable = null;
 playerToken = '';
 lobbyToken = '';
+playerName = '';
 
 socket = new WebSocket("ws://dev.brick.codes:3012");
 
 function init() {
     if (somethingLoaded) {
-        createTable();
+        createLobbiesTable();
         loadEventListeners();
         retrieveLobbies();
     }  else {
@@ -26,14 +28,16 @@ socket.addEventListener('message', function (event) {
             if ('Ok' in object['NewLobbyResponse']) {
                 playerToken = object['NewLobbyResponse']['player_id'];
                 lobbyToken  = object['NewLobbyResponse']['lobby_id'];
+                enterLobbyScreen(true);
             } else {
                 window.alert("Error creating lobby.\nPlease make sure all fields are filled and try again.");
             }
             retrieveLobbies();
         } else if ('JoinLobbyResponse' in object) {
             playerToken = object['player_id'];
-        } else if ('LobbyList' in object) {
-            updateTable(object['LobbyList']);
+            enterLobbyScreen(false);
+        } else if ('ListLobbiesResponse' in object) {
+            updateLobbiesTable(object['ListLobbiesResponse']);
         } else {
             console.log("Unknown object: ");
             console.log(object);
@@ -54,7 +58,7 @@ function loadEventListeners() {
 
         var maxPlayers = Number(document.getElementById('max-players-input').value);
         var lobbyName = document.getElementById('lobby-name-input').value;
-        var playerName = document.getElementById('owner-name-input').value;
+        playerName = document.getElementById('owner-name-input').value;
         if (document.getElementById('private-checkbox').checked) {
             var password = document.getElementById('password-input').value;
         } else {
@@ -84,6 +88,35 @@ function loadEventListeners() {
             socket.send(newLobbyBlob);
         }
     });
+
+    document.getElementById('lobbies-table').addEventListener('click', function(event) {
+
+        if (event.target && event.target.matches('a#join-lobby')) {
+
+            playerName = prompt("Please enter your name:", "");
+
+            if (event.target.getAttribute('password-protected') == 'true') {
+                var password = prompt("This lobby is private. Please enter the password:", "");
+            } else {
+                var password = "";
+            }
+
+            var joinLobbyBlob = new Blob(
+                [JSON.stringify(
+                    {
+                        "JoinLobby": {
+                            "lobby_id"    : event.target.getAttribute('lobby-id'),
+                            "player_name" : playerName,
+                            "password"    : password
+                        }
+                    }
+                )],
+                {type:'application/json'}
+            );
+
+            socket.send(joinLobbyBlob);
+        }
+    });
 }
 
 function retrieveLobbies() {
@@ -96,8 +129,8 @@ function retrieveLobbies() {
     socket.send(listLobbiesBlob);
 }
 
-function createTable(data = []) {
-    dataTable = new DataTable("#lobbies", {
+function createLobbiesTable(data = []) {
+    lobbiesDataTable = new DataTable("#lobbies-table", {
         data: data,
         searchable: true,
         perPageSelect: false,
@@ -111,15 +144,29 @@ function createTable(data = []) {
     });
 }
 
-function updateTable(lobbies) {
+function createPlayerTable(data = []) {
+    playerDataTable = new DataTable("#player-table", {
+        data: data,
+        searchable: false,
+        perPageSelect: false,
+        firstLast: true,
+        sortable: false,
+        labels: {
+            noRows: 'Lobby is currently empty',
+            info: 'Showing {start} to {end} of {rows} players'
+        }
+    })
+}
 
-    dataTable.destroy();
+function updateLobbiesTable(lobbies) {
+
+    lobbiesDataTable.destroy();
 
     rows = [];
 
     for (var i = 0; i < lobbies.length; i++) {
         rows[i] = [
-            lobbies[i]['name'],
+            '<a href id="join-lobby" lobby-id="' + lobbies[i]['lobby_id'] + '" password-protected="' + lobbies[i]['has_password'] + '">' + lobbies[i]['name'] + '</a>',
             lobbies[i]['owner'],
             '' + lobbies[i]['cur_players'] + '/' + lobbies[i]['max_players'],
             lobbies[i]['has_password'] ? '<img class="table-icons" src="./img/icons/lock.svg">' : '<img class="table-icons" src="./img/icons/unlock.svg">',
@@ -135,14 +182,51 @@ function updateTable(lobbies) {
             "Number of Players",
             "Password Protected?",
             "Lobby Age",
-            "Game Status",
+            "Game Status"
         ],
         "data": rows
     };
 
-    createTable(data);
+    createLobbiesTable(data);
 
-    dataTable.columns().sort(5);
+    lobbiesDataTable.columns().sort(5);
+}
+
+function updatePlayerTable(players) {
+
+    playerDataTable.destroy();
+
+    for (var i = 0; i < players.length; i++) {
+        rows[i] = [
+            players[i]
+        ]
+    }
+
+    var data = {
+        "headings": [
+            "Player Name"
+        ],
+        "data": rows
+    }
+
+    createPlayerTable(data);
+}
+
+function enterLobbyScreen(isLobbyOwner = false) {
+
+    document.getElementById('create-lobby').remove();
+    document.getElementById('lobbies-table-div').style.display = 'none';
+
+    document.getElementById('table-header').innerHTML = 'Lobby: Waiting for Game to Begin';
+    document.getElementById('table-header').style.textAlign = 'center';
+
+    createPlayerTable();
+    updatePlayerTable([playerName]);
+    document.getElementById('player-table-div').style.display = 'block';
+
+    if (isLobbyOwner) {
+        // diaplay lobby controls
+    }
 }
 
 function getAgeString(age) {
