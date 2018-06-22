@@ -6,7 +6,7 @@ lobbyToken = '';
 playerName = '';
 
 //socket = new WebSocket("ws://dev.brick.codes:3012");
-socket = new WebSocket("ws://192.168.1.12:3012");
+socket = new WebSocket("ws://10.66.18.85:3012");
 
 function init() {
     if (somethingLoaded) {
@@ -31,14 +31,14 @@ socket.addEventListener('message', function (event) {
             if ('Ok' in object['NewLobbyResponse']) {
                 playerToken = object['NewLobbyResponse']['Ok']['player_id'];
                 lobbyToken  = object['NewLobbyResponse']['Ok']['lobby_id'];
-                enterLobbyScreen([], true);
+                enterLobbyScreen([], object['NewLobbyResponse']['Ok']['max_players'], true);
             } else if ('Err' in object['NewLobbyResponse']) {
                 var errorResponseString = 'Error creating lobby: ';
-                if ('LessThanTwoMaxPlayers' in object['NewLobbyResponse']['Err']) {
+                if (object['NewLobbyResponse']['Err'] == 'LessThanTwoMaxPlayers') {
                     window.alert(errorResponseString + 'Max players must be at least 2.');
-                } else if ('EmptyLobbyName' in object['NewLobbyResponse']['Err']) {
+                } else if (object['NewLobbyResponse']['Err'] == 'EmptyLobbyName') {
                     window.alert(errorResponseString + 'Lobby name cannot be empty.');
-                } else if ('EmptyPlayerName' in object['NewLobbyResponse']['Err']) {
+                } else if (object['NewLobbyResponse']['Err'] == 'EmptyPlayerName') {
                     window.alert(errorResponseString + 'Player name cannot be empty.');
                 } else {
                     window.alert(errorResponseString + 'Unknown error.');
@@ -48,18 +48,18 @@ socket.addEventListener('message', function (event) {
         } else if ('JoinLobbyResponse' in object) {
             if ('Ok' in object['JoinLobbyResponse']) {
                 playerToken = object['JoinLobbyResponse']['Ok']['player_id'];
-                enterLobbyScreen(object['JoinLobbyResponse']['Ok']['lobby_players'], false);
-            } else if ('Err' in object['JoinLobbyResponse']) {
+                enterLobbyScreen(object['JoinLobbyResponse']['Ok']['lobby_players'], object['JoinLobbyResponse']['Ok']['max_players'], false);
+            } else if (object['JoinLobbyResponse'] == 'Err') {
                 var errorResponseString = 'Error joining lobby: ';
-                if ('LobbyNotFound' in object['JoinLobbyResponse']['Err']) {
+                if (object['JoinLobbyResponse']['Err'] == 'LobbyNotFound') {
                     window.alert(errorResponseString + 'Lobby not found.');
-                } else if ('LobbyFull' in object['JoinLobbyResponse']['Err']) {
+                } else if (object['JoinLobbyResponse']['Err'] == 'LobbyFull') {
                     window.alert(errorResponseString + 'Lobby is full.');
-                } else if ('BadPassword' in object['JoinLobbyResponse']['Err']) {
+                } else if (object['JoinLobbyResponse']['Err'] == 'BadPassword') {
                     window.alert(errorResponseString + 'Invalid password.');
-                } else if ('GameInProgress' in object['JoinLobbyResponse']['Err']) {
+                } else if (object['JoinLobbyResponse']['Err'] == 'GameInProgress') {
                     window.alert(errorResponseString + 'Game is in progress.');
-                } else if ('EmptyPlayerName' in object['JoinLobbyResponse']['Err']) {
+                } else if (object['JoinLobbyResponse']['Err'] == 'EmptyPlayerName') {
                     window.alert(errorResponseString + 'Player name cannot be empty.');
                 } else {
                     window.alert(errorResponseString + 'Unknown error.');
@@ -69,6 +69,23 @@ socket.addEventListener('message', function (event) {
             updateLobbiesTable(object['ListLobbiesResponse']);
         } else if ('PlayerJoinEvent' in object) {
             updatePlayerTable(object['PlayerJoinEvent']['new_player_name']);
+        } else if ('RequestAiResponse' in object) {
+            if ('Ok' in object['RequestAiResponse']) {
+                // success, do nothing
+            } else if ('Err' in object['RequestAiResponse']) {
+                var errorResponseString = 'Error requesting AI: ';
+                if (object['RequestAiResponse']['Err'] == 'NotLobbyOwner') {
+                    window.alert(errorResponseString + 'Only the lobby owner can request an AI.');
+                } else if (object['RequestAiResponse']['Err'] == 'LessThanOneAiRequested') {
+                    window.alert(errorResponseString + 'You must request at least one AI.');
+                } else if (object['RequestAiResponse']['Err'] == 'LobbyNotFound') {
+                    window.alert(errorResponseString + 'Lobby could not be found (it may be expired).');
+                } else if (object['RequestAiResponse']['Err'] == 'LobbyTooSmall') {
+                    window.alert(errorResponseString + 'Not enough space in lobby.');
+                } else {
+                    window.alert(errorResponseString + 'Unknown error.');
+                }
+            }
         } else {
             console.log("Unknown object: ");
             console.log(object);
@@ -239,9 +256,10 @@ function updateLobbiesTable(lobbies) {
 
 function updatePlayerTable(newPlayerName) {
     playerDataTable.rows().add([newPlayerName]);
+    document.getElementById('current-players').innerHTML = Number(document.getElementById('current-players').innerHTML) + 1;
 }
 
-function enterLobbyScreen(players, isLobbyOwner = false) {
+function enterLobbyScreen(players, maxPlayers, isLobbyOwner = false) {
 
     document.getElementById('create-lobby').remove();
     document.getElementById('lobbies-table-div').style.display = 'none';
@@ -249,13 +267,35 @@ function enterLobbyScreen(players, isLobbyOwner = false) {
     document.getElementById('table-header').innerHTML = 'Lobby: Waiting for Game to Begin';
     document.getElementById('table-header').style.textAlign = 'center';
 
+    document.getElementById('num-players').innerHTML = "Players: <span id=\"current-players\">" + players.length + "</span>/" + maxPlayers;
+    if (isLobbyOwner) {
+        lobbyControls  = "<form id=\"lobby-buttons\">";
+        lobbyControls += "<button type=\"button\" id=\"add-bot-button\">Add Bot</button> ";
+        lobbyControls += "<button type=\"button\" id=\"start-game-button\">Start Game</button>";
+        lobbyControls += "</form>";
+        document.getElementById('lobby-controls').innerHTML = lobbyControls;
+
+        document.getElementById('add-bot-button').addEventListener('click', function() {
+            var requestAiBlob = new Blob(
+                [JSON.stringify(
+                    {
+                        "RequestAi": {
+                            "lobby_id"  : lobbyToken,
+                            "player_id" : playerToken,
+                            "num_ai"    : 1
+                        }
+                    },
+                )],
+                {type:'application/json'}
+            );
+            socket.send(requestAiBlob);
+        });
+    }
+    document.getElementById('player-info').style.display = 'block';
+
     createPlayerTable(players);
     updatePlayerTable([playerName]);
     document.getElementById('player-table-div').style.display = 'block';
-
-    if (isLobbyOwner) {
-        // diaplay lobby controls
-    }
 }
 
 function getAgeString(age) {

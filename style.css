@@ -85,6 +85,11 @@ div#player-table-div {
     display: none;
 }
 
+div#player-info {
+    display: none;
+    text-align: center;
+}
+
 img.table-icons {
     width: 15px;
 }
