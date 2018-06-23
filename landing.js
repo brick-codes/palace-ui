@@ -74,13 +74,30 @@ socket.addEventListener('message', function (event) {
             } else if ('Err' in object['RequestAiResponse']) {
                 var errorResponseString = 'Error requesting AI: ';
                 if (object['RequestAiResponse']['Err'] == 'NotLobbyOwner') {
-                    window.alert(errorResponseString + 'Only the lobby owner can request an AI.');
+                    window.alert(errorResponseString + 'Only the lobby owner can request an AI (you\'re not the lobby owner).');
                 } else if (object['RequestAiResponse']['Err'] == 'LessThanOneAiRequested') {
                     window.alert(errorResponseString + 'You must request at least one AI.');
                 } else if (object['RequestAiResponse']['Err'] == 'LobbyNotFound') {
                     window.alert(errorResponseString + 'Lobby could not be found (it may be expired).');
                 } else if (object['RequestAiResponse']['Err'] == 'LobbyTooSmall') {
                     window.alert(errorResponseString + 'Not enough space in lobby.');
+                } else {
+                    window.alert(errorResponseString + 'Unknown error.');
+                }
+            }
+        } else if ('StartGameResponse' in object) {
+            if ('Ok' in object['StartGameResponse']) {
+                // do nothing here; GameStartEvent triggers switch to game screen
+            } else if ('Err' in object['StartGameResponse']) {
+                var errorResponseString = 'Error starting game: ';
+                if (object['StartGameResponse']['Err'] == 'LobbyNotFound') {
+                    window.alert(errorResponseString + 'Lobby not found (might be expired).');
+                } else if (object['StartGameResponse']['Err'] == 'NotLobbyOwner') {
+                    window.alert(errorResponseString + 'Only the lobby owner can start the game (you\'re not the lobby owner).');
+                } else if (object['StartGameResponse']['Err'] == 'LessThanTwoPlayers') {
+                    window.alert(errorResponseString + 'There must be at least two players to start the game.');
+                } else if (object['StartGameResponse']['Err'] == 'GameInProgress') {
+                    window.alert(errorResponseString + 'This game is already in progress.');
                 } else {
                     window.alert(errorResponseString + 'Unknown error.');
                 }
@@ -301,6 +318,21 @@ function enterLobbyScreen(players, maxPlayers, isLobbyOwner = false) {
                 {type:'application/json'}
             );
             socket.send(requestAiBlob);
+        });
+
+        document.getElementById('start-game-button').addEventListener('click', function() {
+            var startGameBlob = new Blob(
+                [JSON.stringify(
+                    {
+                        "StartGame": {
+                            "player_id" : playerToken,
+                            "lobby_id"  : lobbyToken
+                        }
+                    }
+                )],
+                {type:'application/json'}
+            );
+            socket.send(startGameBlob);
         });
     }
     document.getElementById('player-info').style.display = 'block';
