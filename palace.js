@@ -109,6 +109,7 @@ socket.addEventListener('message', function (event) {
         } else if ('GameStartEvent' in object) {
             turnNumber = object['GameStartEvent']['turn_number'];
             hand = object['GameStartEvent']['hand'];
+            playerNames = object['GameStartEvent']['players'];
         } else if ('PublicGameStateEvent' in object) {
             updateGameScreen(object['PublicGameStateEvent']);
 /*             hands = object['PublicGameStateEvent']['hands'];
@@ -384,7 +385,7 @@ function updateGameScreen(gameState) {
     newHtml = '<div id="other-players">';
     for (i = 0; i < gameState['hands'].length; i++) {
         if (i != turnNumber) { // if player is not you
-            newHtml += generateTableHtml(gameState, i, playerName, turnNumber, setNum, backNum, 60);
+            newHtml += generateTableHtml(gameState, i, playerNames[String(i)], turnNumber, setNum, backNum, 60);
         }
     }
     newHtml += '</div>';
@@ -402,6 +403,9 @@ function updateGameScreen(gameState) {
     newHtml += '</div>';
     // player's hand cards
     newHtml += '<div class="hand-cards" id="player-' + turnNumber + '">';
+    for (var i = 0; i < hand.length; i++) {
+        newHtml += generateCardHtml(hand[i], setNum, 100);
+    }
     newHtml += '</div>';
     newHtml += '</div>';
 
