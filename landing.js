@@ -1,3 +1,4 @@
+const lobbyOwnerIconHtml = '<img class=\"table-icons\" src=\"./img/icons/crown.svg\" title=\"Lobby Owner\"> ';
 somethingLoaded = false;
 lobbiesDataTable = null;
 playerDataTable = null;
@@ -5,8 +6,7 @@ playerToken = '';
 lobbyToken = '';
 playerName = '';
 
-//socket = new WebSocket("ws://dev.brick.codes:3012");
-socket = new WebSocket("ws://10.66.18.85:3012");
+socket = new WebSocket("ws://dev.brick.codes:3012");
 
 function init() {
     if (somethingLoaded) {
@@ -44,12 +44,11 @@ socket.addEventListener('message', function (event) {
                     window.alert(errorResponseString + 'Unknown error.');
                 }
             }
-            retrieveLobbies();
         } else if ('JoinLobbyResponse' in object) {
             if ('Ok' in object['JoinLobbyResponse']) {
                 playerToken = object['JoinLobbyResponse']['Ok']['player_id'];
                 enterLobbyScreen(object['JoinLobbyResponse']['Ok']['lobby_players'], object['JoinLobbyResponse']['Ok']['max_players'], false);
-            } else if (object['JoinLobbyResponse'] == 'Err') {
+            } else if ('Err' in object['JoinLobbyResponse']) {
                 var errorResponseString = 'Error joining lobby: ';
                 if (object['JoinLobbyResponse']['Err'] == 'LobbyNotFound') {
                     window.alert(errorResponseString + 'Lobby not found.');
@@ -165,6 +164,10 @@ function loadEventListeners() {
             socket.send(joinLobbyBlob);
         }
     });
+
+    document.getElementById('refresh-lobbies-button').addEventListener('click', function() {
+        retrieveLobbies();
+    });
 }
 
 function retrieveLobbies() {
@@ -197,7 +200,8 @@ function createPlayerTable(players = []) {
     var rows = [];
 
     for (var i = 0; i < players.length; i++) {
-        rows[i] = [players[i]];
+        var playerString = (i == 0 ? lobbyOwnerIconHtml : '') + players[i];
+        rows[i] = [playerString];
     }
 
     var data = {
@@ -255,8 +259,16 @@ function updateLobbiesTable(lobbies) {
 }
 
 function updatePlayerTable(newPlayerName) {
+    if (!playerDataTable.hasRows) {
+        newPlayerName = lobbyOwnerIconHtml + newPlayerName;
+    }
     playerDataTable.rows().add([newPlayerName]);
-    document.getElementById('current-players').innerHTML = Number(document.getElementById('current-players').innerHTML) + 1;
+    document.getElementById('current-players-counter').innerHTML = Number(document.getElementById('current-players-counter').innerHTML) + 1;
+    if (Number(document.getElementById('current-players-counter').innerText) >= Number(document.getElementById('max-players-counter').innerText)) {
+        if (document.getElementById('add-bot-button')) {
+            document.getElementById('add-bot-button').disabled = true;
+        }
+    }
 }
 
 function enterLobbyScreen(players, maxPlayers, isLobbyOwner = false) {
@@ -267,7 +279,7 @@ function enterLobbyScreen(players, maxPlayers, isLobbyOwner = false) {
     document.getElementById('table-header').innerHTML = 'Lobby: Waiting for Game to Begin';
     document.getElementById('table-header').style.textAlign = 'center';
 
-    document.getElementById('num-players').innerHTML = "Players: <span id=\"current-players\">" + players.length + "</span>/" + maxPlayers;
+    document.getElementById('num-players').innerHTML = "Players: <span id=\"current-players-counter\">" + players.length + "</span>/<span id=\"max-players-counter\">" + maxPlayers + "</span>";
     if (isLobbyOwner) {
         lobbyControls  = "<form id=\"lobby-buttons\">";
         lobbyControls += "<button type=\"button\" id=\"add-bot-button\">Add Bot</button> ";
@@ -310,6 +322,6 @@ function getAgeString(age) {
     } else if (age >= 60) {
         return Math.floor((age / 60)) + " minutes";
     } else {
-        return Math.floor(age)  + " seconds";
+        return Math.floor(age) + " seconds";
     }
 }
