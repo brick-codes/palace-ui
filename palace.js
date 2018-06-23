@@ -71,7 +71,9 @@ socket.addEventListener('message', function (event) {
         } else if ('ListLobbiesResponse' in object) {
             updateLobbiesTable(object['ListLobbiesResponse']);
         } else if ('PlayerJoinEvent' in object) {
-            updatePlayerTable(object['PlayerJoinEvent']['new_player_name']);
+            updatePlayerTablePlayerJoin(object['PlayerJoinEvent']['new_player_name']);
+	} else if ('PlayerLeaveEvent' in object) {
+	    updatePlayerTablePlayerLeave();
         } else if ('RequestAiResponse' in object) {
             if ('Ok' in object['RequestAiResponse']) {
                 // success, do nothing
@@ -294,7 +296,7 @@ function updateLobbiesTable(lobbies) {
     lobbiesDataTable.columns().sort(5);
 }
 
-function updatePlayerTable(newPlayerName) {
+function updatePlayerTablePlayerJoin(newPlayerName) {
     if (!playerDataTable.hasRows) {
         newPlayerName = lobbyOwnerIconHtml + newPlayerName;
     }
@@ -304,6 +306,13 @@ function updatePlayerTable(newPlayerName) {
         if (document.getElementById('add-bot-button')) {
             document.getElementById('add-bot-button').disabled = true;
         }
+    }
+}
+
+function updatePlayerTablePlayerLeave() {
+    document.getElementById('current-players-counter').innerHTML = Number(document.getElementById('current-players-counter').innerHTML) - 1;
+    if (document.getElementById('add-bot-button')) {
+        document.getElementById('add-bot-button').disabled = false;
     }
 }
 
@@ -357,7 +366,7 @@ function enterLobbyScreen(players, maxPlayers, isLobbyOwner = false) {
     document.getElementById('player-info').style.display = 'block';
 
     createPlayerTable(players);
-    updatePlayerTable([playerName]);
+    updatePlayerTablePlayerJoin([playerName]);
     document.getElementById('player-table-div').style.display = 'block';
 }
 
