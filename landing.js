@@ -5,6 +5,10 @@ playerDataTable = null;
 playerToken = '';
 lobbyToken = '';
 playerName = '';
+turnNumber = null;
+hand = null;
+setNum = 1;
+backNum = 1;
 
 socket = new WebSocket("ws://dev.brick.codes:3012");
 
@@ -102,7 +106,21 @@ socket.addEventListener('message', function (event) {
                     window.alert(errorResponseString + 'Unknown error.');
                 }
             }
-        } else {
+        } else if ('GameStartEvent' in object) {
+            turnNumber = object['GameStartEvent']['turn_number'];
+            hand = object['GameStartEvent']['hand'];
+        } else if ('PublicGameStateEvent' in object) {
+            updateGameScreen(object['PublicGameStateEvent']);
+/*             hands = object['PublicGameStateEvent']['hands'];
+            faceUpThree = object['PublicGameStateEvent']['face_up_three'];
+            faceDownThree = object['PublicGameStateEvent']['face_down_three'];
+            topCard = object['PublicGameStateEvent']['top_card'];
+            pileSize = object['PublicGameStateEvent']['pile_size'];
+            clearedSize = object['PublicGameStateEvent']['cleared_size'];
+            CurPhase = object['PublicGameStateEvent']['cur_phase']; // setup, play, complete
+            activePlayer = object['PublicGameStateEvent']['active_player'];
+            lastCardsPlayed = object['PublicGameStateEvent']['last_cards_played'];
+ */        } else {
             console.log("Unknown object: ");
             console.log(object);
         }
@@ -356,4 +374,115 @@ function getAgeString(age) {
     } else {
         return Math.floor(age) + " seconds";
     }
+}
+
+function updateGameScreen(gameState) {
+
+    // var parentElement = document.getElementById('landing');
+
+    // TABLE CARDS 
+    newHtml = '<div id="other-players">';
+    for (i = 0; i < gameState['hands'].length; i++) {
+        if (i != turnNumber) { // if player is not you
+            newHtml += generateTableHtml(gameState, i, playerName, turnNumber, setNum, backNum, 60);
+        }
+    }
+    newHtml += '</div>';
+
+    // CARD STACK
+    newHtml += '<div id="card-stack">';
+    newHtml += (gameState['top_card'] ? generateCardHtml(gameState['top_card'], setNum, 150) : '');
+    newHtml += '</div>';
+
+    // PLAYER CARDS
+    newHtml += '<div id="my-cards">';
+    // player's table cards
+    newHtml += '<div class="my-table" id="player-' + turnNumber + '">';
+    newHtml += generateTableHtml(gameState, turnNumber, playerName, turnNumber, setNum, backNum, 100);
+    newHtml += '</div>';
+    // player's hand cards
+    newHtml += '<div class="hand-cards" id="player-' + turnNumber + '">';
+    newHtml += '</div>';
+    newHtml += '</div>';
+
+    document.getElementById('landing').innerHTML = newHtml;
+}
+
+function generateTableHtml(gameState, playerId, playerName, myId, setNum, backNum, cardWidth) {
+
+    html = '<div class="player" id="player-' + playerId + '">';
+
+    if (playerId != myId) {
+        html += '<h3>' + playerName + '</h3><p>' + gameState['hands'][playerId] + ' cards in hand</p>';
+    }
+
+    for (j = 0; j < gameState['face_up_three'][playerId].length; j++) {
+        html += generateCardHtml(gameState['face_up_three'][playerId][j], setNum, cardWidth);
+    }
+
+    html += '</br>';
+
+    for (j = 0; j < gameState['face_down_three'][playerId]; j++) {
+        html += '<img src="img/backs/back-' + backNum + '.svg" width="' + cardWidth + 'px">';
+    }
+
+    html += '</div>';
+
+    return html;
+}
+
+function generateCardHtml(card, setNum, width) {
+    html  = '<img src="img/set-' + setNum + '/' + getCardName(card) + '.svg"';
+    html += ' title="' + card['value'].toLowerCase() + ' of ';
+    html += card['suit'].toLowerCase() + '" width="' + width + 'px">';
+    return html;
+}
+
+function getCardName(card) {
+
+    cardName = '';
+
+    switch (card['value']) {
+        case 'Two':
+            cardName += '2';
+            break;
+        case 'Three':
+            cardName += '3';
+            break;
+        case 'Four':
+            cardName += '4';
+            break;
+        case 'Five':
+            cardName += '5';
+            break;
+        case 'Six':
+            cardName += '6';
+            break;
+        case 'Seven':
+            cardName += '7';
+            break;
+        case 'Eight':
+            cardName += '8';
+            break;
+        case 'Nine':
+            cardName += '9';
+            break;
+        case 'Ten':
+            cardName += '10';
+            break;
+        case 'Jack':
+            cardName += 'J';
+            break;
+        case 'Queen':
+            cardName += 'Q';
+            break;
+        case 'King':
+            cardName += 'K';
+            break;
+        case 'Ace':
+            cardName += 'A';
+            break;
+    }
+
+    return cardName + card['suit'][0];
 }
