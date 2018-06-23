@@ -7,7 +7,7 @@ lobbyToken = '';
 playerName = '';
 turnNumber = null;
 hand = null;
-setNum = 1;
+setNum = 3;
 backNum = 1;
 
 socket = new WebSocket("ws://dev.brick.codes:3012");
@@ -379,8 +379,6 @@ function getAgeString(age) {
 
 function updateGameScreen(gameState) {
 
-    // var parentElement = document.getElementById('landing');
-
     // TABLE CARDS 
     newHtml = '<div id="other-players">';
     for (i = 0; i < gameState['hands'].length; i++) {
@@ -410,6 +408,12 @@ function updateGameScreen(gameState) {
     newHtml += '</div>';
 
     document.getElementById('landing').innerHTML = newHtml;
+
+    document.getElementById('my-cards').addEventListener('click', function(event) {
+        if (event.target && event.target.matches('img.card-front-img')) {
+            event.target.classList.toggle('card-selected');
+        }
+    });
 }
 
 function generateTableHtml(gameState, playerId, playerName, myId, setNum, backNum, cardWidth) {
@@ -427,7 +431,7 @@ function generateTableHtml(gameState, playerId, playerName, myId, setNum, backNu
     html += '</br>';
 
     for (j = 0; j < gameState['face_down_three'][playerId]; j++) {
-        html += '<img src="img/backs/back-' + backNum + '.svg" width="' + cardWidth + 'px">';
+        html += '<img class="card" src="img/backs/back-' + backNum + '.svg" width="' + cardWidth + 'px">';
     }
 
     html += '</div>';
@@ -438,7 +442,8 @@ function generateTableHtml(gameState, playerId, playerName, myId, setNum, backNu
 function generateCardHtml(card, setNum, width) {
     html  = '<img src="img/set-' + setNum + '/' + getCardName(card) + '.svg"';
     html += ' title="' + card['value'].toLowerCase() + ' of ';
-    html += card['suit'].toLowerCase() + '" width="' + width + 'px">';
+    html += card['suit'].toLowerCase() + '" width="' + width + 'px" ';
+    html += 'class="card card-front-img">';
     return html;
 }
 

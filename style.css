@@ -95,6 +95,25 @@ img.table-icons {
     width: 15px;
 }
 
+img.card-front-img {
+    transition: 0.1s ease;
+}
+
+img.card-front-img:hover {
+    opacity: 0.2;
+    cursor: pointer;
+}
+
+img.card {
+    border: 2px solid white;
+    border-radius: 10px;
+    margin: 3px;
+}
+
+img.card-selected {
+    border-color: blue;
+}
+
 span#join-lobby {
     cursor: pointer;
     color: blue;
