@@ -5,12 +5,16 @@ playerDataTable = null;
 playerToken = '';
 lobbyToken = '';
 playerName = '';
+curPhase = '';
 turnNumber = null;
+gameState = null;
 hand = null;
+selectedCards = [];
 setNum = 3;
 backNum = 1;
 
-socket = new WebSocket("ws://dev.brick.codes:3012");
+//socket = new WebSocket("ws://dev.brick.codes:3012");
+socket = new WebSocket("ws://192.168.1.250:3012");
 
 function init() {
     if (somethingLoaded) {
@@ -111,7 +115,9 @@ socket.addEventListener('message', function (event) {
             hand = object['GameStartEvent']['hand'];
             playerNames = object['GameStartEvent']['players'];
         } else if ('PublicGameStateEvent' in object) {
-            updateGameScreen(object['PublicGameStateEvent']);
+            gameState = object['PublicGameStateEvent'];
+            updateGameScreen();
+            // curPhase = object['PublicGameStateEvent']['cur_phase']; // setup, play, complete
 /*             hands = object['PublicGameStateEvent']['hands'];
             faceUpThree = object['PublicGameStateEvent']['face_up_three'];
             faceDownThree = object['PublicGameStateEvent']['face_down_three'];
@@ -120,8 +126,11 @@ socket.addEventListener('message', function (event) {
             clearedSize = object['PublicGameStateEvent']['cleared_size'];
             CurPhase = object['PublicGameStateEvent']['cur_phase']; // setup, play, complete
             activePlayer = object['PublicGameStateEvent']['active_player'];
-            lastCardsPlayed = object['PublicGameStateEvent']['last_cards_played'];
- */        } else {
+            lastCardsPlayed = object['PublicGameStateEvent']['last_cards_played'];*/
+        } else if ('HandEvent' in object) {
+            hand = object['HandEvent'];
+            updateGameScreen();
+        } else {
             console.log("Unknown object: ");
             console.log(object);
         }
@@ -377,7 +386,7 @@ function getAgeString(age) {
     }
 }
 
-function updateGameScreen(gameState) {
+function updateGameScreen() {
 
     // TABLE CARDS 
     newHtml = '<div id="other-players">';
@@ -404,6 +413,7 @@ function updateGameScreen(gameState) {
     for (var i = 0; i < hand.length; i++) {
         newHtml += generateCardHtml(hand[i], setNum, 100);
     }
+    newHtml += '</br><button type="button" id="play-cards">Play Cards</button>'
     newHtml += '</div>';
     newHtml += '</div>';
 
@@ -412,6 +422,58 @@ function updateGameScreen(gameState) {
     document.getElementById('my-cards').addEventListener('click', function(event) {
         if (event.target && event.target.matches('img.card-front-img')) {
             event.target.classList.toggle('card-selected');
+            var cardName = event.target.getAttribute('title');
+            if (event.target.classList.contains('card-selected')) {
+                selectedCards.push(cardName);
+            } else {
+                var index = selectedCards.indexOf(cardName);
+                selectedCards.splice(index, 1);
+            }
+        }
+    });
+
+    document.getElementById('play-cards').addEventListener('click', function() {
+        var cardObjects = [];
+        for (var i = 0; i < selectedCards.length; i++) {
+            var cardInfo = selectedCards[i].split(' of ');
+            cardObjects.push({
+                'value' : cardInfo[0],
+                'suit'  : cardInfo[1]
+            })
+        }
+        if (gameState['cur_phase'] == 'Setup') {
+            // TODO: add validation
+            var chooseFaceupBlob = new Blob(
+                [JSON.stringify(
+                    {
+                        'ChooseFaceup': {
+                            'lobby_id'   : lobbyToken,
+                            'player_id'  : playerToken,
+                            'card_one'   : cardObjects[0],
+                            'card_two'   : cardObjects[1],
+                            'card_three' : cardObjects[2]
+                        }
+                    }
+                )],
+                {type:'application/json'}
+            );
+            socket.send(chooseFaceupBlob);
+            selectedCards = [];
+        } else if (gameState['cur_phase'] == 'Play') {
+            // TODO: add validation
+            var makePlayBlob = new Blob(
+                [JSON.stringify(
+                    {
+                        'MakePlay': {
+                            'lobby_id'  : lobbyToken,
+                            'player_id' : playerToken,
+                            'cards'     : cardObjects
+                        }
+                    }
+                )]
+            );
+            socket.send(makePlayBlob);
+            selectedCards = [];
         }
     });
 }
@@ -441,8 +503,8 @@ function generateTableHtml(gameState, playerId, playerName, myId, setNum, backNu
 
 function generateCardHtml(card, setNum, width) {
     html  = '<img src="img/set-' + setNum + '/' + getCardName(card) + '.svg"';
-    html += ' title="' + card['value'].toLowerCase() + ' of ';
-    html += card['suit'].toLowerCase() + '" width="' + width + 'px" ';
+    html += ' title="' + card['value'] + ' of ';
+    html += card['suit'] + '" width="' + width + 'px" ';
     html += 'class="card card-front-img">';
     return html;
 }
