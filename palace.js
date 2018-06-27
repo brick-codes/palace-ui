@@ -414,7 +414,11 @@ function updateGameScreen() {
     for (var i = 0; i < hand.length; i++) {
         newHtml += generateCardHtml(hand[i], setNum, 100);
     }
-    newHtml += '</br><button type="button" id="play-cards">Play Cards</button>'
+    newHtml += '</br><button type="button" id="play-cards'
+    if (gameState['active_player'] != turnNumber) {
+        newHtml += ' disabled="true"';
+    }
+    newHtml += '">Play Cards</button>'
     newHtml += '</div>';
     newHtml += '</div>';
 
@@ -484,7 +488,11 @@ function generateTableHtml(gameState, playerId, playerName, myId, setNum, backNu
     html = '<div class="player" id="player-' + playerId + '">';
 
     if (playerId != myId) {
-        html += '<h3>' + playerName + '</h3><p>' + gameState['hands'][playerId] + ' cards in hand</p>';
+        html += '<h3>' + playerName + '</h3>'
+        if (gameState['active_player'] == playerId) {
+            html += '<img class="table-icons" src="./img/icons/star.svg">';
+        }
+        html += '<p>' + gameState['hands'][playerId] + ' cards in hand</p>';
     }
 
     for (j = 0; j < gameState['face_up_three'][playerId].length; j++) {
