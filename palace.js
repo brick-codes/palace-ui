@@ -13,8 +13,7 @@ selectedCards = [];
 setNum = 3;
 backNum = 1;
 
-//socket = new WebSocket("ws://dev.brick.codes:3012");
-socket = new WebSocket("ws://192.168.1.250:3012");
+socket = new WebSocket("ws://dev.brick.codes:3012");
 
 function init() {
     if (somethingLoaded) {
@@ -193,11 +192,13 @@ function loadEventListeners() {
                 var password = "";
             }
 
+            lobbyToken = event.target.getAttribute('lobby-id');
+
             var joinLobbyBlob = new Blob(
                 [JSON.stringify(
                     {
                         "JoinLobby": {
-                            "lobby_id"    : event.target.getAttribute('lobby-id'),
+                            "lobby_id"    : lobbyToken,
                             "player_name" : playerName,
                             "password"    : password
                         }
