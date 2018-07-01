@@ -415,6 +415,7 @@ function updateGameScreen() {
     newHtml += '</div>';
     // player's hand cards
     newHtml += '<div class="hand-cards" id="player-' + turnNumber + '">';
+    hand = sortCards(hand);
     for (var i = 0; i < hand.length; i++) {
         var selectable = false;
         if (gameState['active_player'] == turnNumber) {
@@ -433,14 +434,50 @@ function updateGameScreen() {
     document.getElementById('landing').innerHTML = newHtml;
 
     document.getElementById('my-cards').addEventListener('click', function(event) {
-        if (event.target && event.target.matches('img.card-front-img')) {
+
+        if (event.target && event.target.matches('img.card-front-img') && !event.target.classList.contains('card-disabled')) {
+
             event.target.classList.toggle('card-selected');
             var cardName = event.target.getAttribute('title');
-            if (event.target.classList.contains('card-selected')) {
+
+            if (event.target.classList.contains('card-selected')) { // card becomes selected
+
                 selectedCards.push(cardName);
-            } else {
+                currentCards = document.querySelectorAll('img.card-front-img');
+
+                if (gameState['cur_phase'] == 'Setup') {
+                    if (selectedCards.length >= 3) {
+                        for (var i = 0; i < currentCards.length; i++) {
+                            if (!currentCards[i].classList.contains('card-selected')) {
+                                currentCards[i].classList.add('card-disabled');
+                            }
+                        }
+                    }
+                } else {
+                    var value = selectedCards[0].split(' ')[0];
+                    for (var i = 0; i < currentCards.length; i++) {
+                        console.log(currentCards[i].getAttribute('card-value'));
+                        if (!currentCards[i].classList.contains('card-selected') && currentCards[i].getAttribute('card-value') != value) {
+                            currentCards[i].classList.add('card-disabled');
+                        }
+                    }
+                }
+            } else { // card becomes unselected
                 var index = selectedCards.indexOf(cardName);
                 selectedCards.splice(index, 1);
+
+                if (gameState['cur_phase'] == 'Setup') {
+                    disabledCards = document.querySelectorAll('img.card-disabled');
+                    for (var i = 0; i < disabledCards.length; i++) {
+                        disabledCards[i].classList.remove('card-disabled');
+                    }
+                } else {
+                    if (selectedCards.length == 0) {
+                        for (var i = 0; i < currentCards.length; i++) {
+                            currentCards[i].classList.remove('card-disabled');
+                        }
+                    }
+                }
             }
         }
     });
@@ -500,13 +537,13 @@ function generateTableHtml(gameState, playerId, playerName, myId, setNum, backNu
         if (gameState['active_player'] == playerId) {
             html += ' <img class="table-icons" src="./img/icons/star.svg">';
         }
-        html += playerName + '</h3>';
+        html += playerName + ' (' + (playerId+1) + ')</h3>';
         html += '<p>' + gameState['hands'][playerId] + ' cards in hand</p>';
     }
 
     for (j = 0; j < gameState['face_up_three'][playerId].length; j++) {
         var selectable = false;
-        if (myId == playerId && (gameState['cur_phase'] == 'Setup' || gameState['hands'][myId] == 0)) {
+        if (playerId == gameState['active_player'] && (gameState['cur_phase'] == 'Setup' || gameState['hands'][myId] == 0)) {
             selectable = true;
         }
         html += generateCardHtml(gameState['face_up_three'][playerId][j], setNum, cardWidth, selectable);
@@ -535,7 +572,7 @@ function generateCardHtml(card, setNum, width, selectable = false, transparent =
     } else {
         html += ' class="card"';
     }
-    html += ' width="' + width + 'px">';
+    html += ' card-value="' + card['value'] + '" width="' + width + 'px">';
     return html;
 }
 
@@ -586,4 +623,31 @@ function getCardName(card) {
     }
 
     return cardName + card['suit'][0];
+}
+
+function sortCards(cards) {
+    var cardValues = {
+        'Two':   2,
+        'Three': 3,
+        'Four':  4,
+        'Five':  5,
+        'Six':   6,
+        'Seven': 7,
+        'Eight': 8,
+        'Nine':  9,
+        'Ten':   10,
+        'Jack':  11,
+        'Queen': 12,
+        'King':  13,
+        'Ace':   14
+    }
+    var suitValues = {
+        'Clubs':    0,
+        'Diamonds': 1,
+        'Hearts':   2,
+        'Spades':   3
+    }
+    return cards.sort(function(a, b) {
+        return ((cardValues[a['value']] * 10) + suitValues[a['suit']]) - ((cardValues[b['value']] * 10) + suitValues[b['suit']]);
+    });
 }

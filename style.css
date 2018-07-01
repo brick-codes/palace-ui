@@ -114,6 +114,14 @@ img.card-selected {
     border-color: blue;
 }
 
+img.card-disabled {
+    opacity: 0.2;
+}
+
+img.card-disabled:hover {
+    cursor: not-allowed;
+}
+
 span#join-lobby {
     cursor: pointer;
     color: blue;
