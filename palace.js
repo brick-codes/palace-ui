@@ -400,7 +400,11 @@ function updateGameScreen() {
 
     // CARD STACK
     newHtml += '<div id="card-stack">';
-    newHtml += (gameState['top_card'] ? generateCardHtml(gameState['top_card'], setNum, 150) : '');
+    if (gameState['top_card']) {
+        newHtml += generateCardHtml(gameState['top_card'], setNum, 150);
+    } else {
+        newHtml += generateCardHtml({'value':'Two', 'suit':'Clubs'}, setNum, 150, false, true);
+    }
     newHtml += '</div>';
 
     // PLAYER CARDS
@@ -412,13 +416,17 @@ function updateGameScreen() {
     // player's hand cards
     newHtml += '<div class="hand-cards" id="player-' + turnNumber + '">';
     for (var i = 0; i < hand.length; i++) {
-        newHtml += generateCardHtml(hand[i], setNum, 100);
+        var selectable = false;
+        if (gameState['active_player'] == turnNumber) {
+            selectable = true;
+        }
+        newHtml += generateCardHtml(hand[i], setNum, 100, selectable);
     }
-    newHtml += '</br><button type="button" id="play-cards'
+    newHtml += '</br><button type="button" id="play-cards"'
     if (gameState['active_player'] != turnNumber) {
-        newHtml += ' disabled="true"';
+        newHtml += ' disabled';
     }
-    newHtml += '">Play Cards</button>'
+    newHtml += '>Play Cards</button>'
     newHtml += '</div>';
     newHtml += '</div>';
 
@@ -488,15 +496,20 @@ function generateTableHtml(gameState, playerId, playerName, myId, setNum, backNu
     html = '<div class="player" id="player-' + playerId + '">';
 
     if (playerId != myId) {
-        html += '<h3>' + playerName + '</h3>'
+        html += '<h3>';
         if (gameState['active_player'] == playerId) {
-            html += '<img class="table-icons" src="./img/icons/star.svg">';
+            html += ' <img class="table-icons" src="./img/icons/star.svg">';
         }
+        html += playerName + '</h3>';
         html += '<p>' + gameState['hands'][playerId] + ' cards in hand</p>';
     }
 
     for (j = 0; j < gameState['face_up_three'][playerId].length; j++) {
-        html += generateCardHtml(gameState['face_up_three'][playerId][j], setNum, cardWidth);
+        var selectable = false;
+        if (myId == playerId && (gameState['cur_phase'] == 'Setup' || gameState['hands'][myId] == 0)) {
+            selectable = true;
+        }
+        html += generateCardHtml(gameState['face_up_three'][playerId][j], setNum, cardWidth, selectable);
     }
 
     html += '</br>';
@@ -510,11 +523,19 @@ function generateTableHtml(gameState, playerId, playerName, myId, setNum, backNu
     return html;
 }
 
-function generateCardHtml(card, setNum, width) {
+function generateCardHtml(card, setNum, width, selectable = false, transparent = false) {
     html  = '<img src="img/set-' + setNum + '/' + getCardName(card) + '.svg"';
-    html += ' title="' + card['value'] + ' of ';
-    html += card['suit'] + '" width="' + width + 'px" ';
-    html += 'class="card card-front-img">';
+    if (transparent) {
+        html += ' style="opacity:0.0;"';
+    } else {
+        html += ' title="' + card['value'] + ' of ' + card['suit'] + '"';
+    }
+    if (selectable) {
+        html += ' class="card card-front-img"';
+    } else {
+        html += ' class="card"';
+    }
+    html += ' width="' + width + 'px">';
     return html;
 }
 
