@@ -77,9 +77,24 @@ div#my-cards {
     align-items: center;
 }
 
+div#center-area {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-wrap: nowrap;
+}
+
 div#card-stack {
     text-align: center;
     padding: 25px;
+}
+
+div#stack-info {
+    display: flex;
+}
+
+span#stack-info-span {
+    margin: auto;
 }
 
 div#player-table-div {

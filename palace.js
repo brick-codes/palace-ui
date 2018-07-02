@@ -10,6 +10,7 @@ turnNumber = null;
 gameState = null;
 hand = null;
 selectedCards = [];
+recentCards = [];
 setNum = 3;
 backNum = 1;
 
@@ -389,6 +390,30 @@ function getAgeString(age) {
 
 function updateGameScreen() {
 
+    var trueLastValue = null;
+    var lastIndex = 0;
+    recentCards = gameState['last_cards_played'].concat(recentCards);
+    recentCards = recentCards.slice(0, gameState['pile_size']);
+    for (lastIndex = 0; lastIndex < recentCards.length; lastIndex++) {
+        if (trueLastValue == null) {
+            if (recentCards[lastIndex]['value'] != 'Four') {
+                trueLastValue = recentCards[lastIndex]['value'];
+            }
+        } else {
+            if (recentCards[lastIndex]['value'] != 'Four' && trueLastValue != null && recentCards[lastIndex]['value'] != trueLastValue) {
+                break;
+            }
+        }
+    }
+
+    recentCards = recentCards.slice(0, lastIndex);
+
+    if (trueLastValue != null) {
+        while (recentCards[recentCards.length - 1]['value'] == 'Four') {
+            recentCards = recentCards.slice(0, recentCards.length - 1);
+        }
+    }
+
     // TABLE CARDS 
     newHtml = '<div id="other-players">';
     for (i = 0; i < gameState['hands'].length; i++) {
@@ -399,12 +424,20 @@ function updateGameScreen() {
     newHtml += '</div>';
 
     // CARD STACK
-    newHtml += '<div id="card-stack">';
+    newHtml += '<div id="center-area"><div id="card-stack">';
     if (gameState['top_card']) {
         newHtml += generateCardHtml(gameState['top_card'], setNum, 150);
     } else {
         newHtml += generateCardHtml({'value':'Two', 'suit':'Clubs'}, setNum, 150, false, true);
     }
+    newHtml += '</div>';
+    newHtml += '<div id="stack-info"><span id="stack-info-span">'
+    newHtml += 'Top of the stack:<ul>';
+    for (var i = 0; i < recentCards.length; i++) {
+        newHtml += '<li>' + recentCards[i]['value'] + ' of ' + recentCards[i]['suit'] + '</li>';
+    }
+    newHtml += '</ul>';
+    newHtml += 'Cards on the stack: ' + gameState['pile_size'] + '</span></div>';
     newHtml += '</div>';
 
     // PLAYER CARDS
