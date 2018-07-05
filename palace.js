@@ -7,14 +7,16 @@ lobbyToken = '';
 playerName = '';
 curPhase = '';
 turnNumber = null;
-gameState = null;
+gameStates = [];
+latestGameState = null;
 hand = null;
 selectedCards = [];
 recentCards = [];
 setNum = 3;
 backNum = 1;
 
-socket = new WebSocket("ws://dev.brick.codes:3012");
+// socket = new WebSocket("ws://dev.brick.codes:3012");
+socket = new WebSocket("ws://192.168.1.39:3012");
 
 function init() {
     if (somethingLoaded) {
@@ -114,22 +116,21 @@ socket.addEventListener('message', function (event) {
             turnNumber = object['GameStartEvent']['turn_number'];
             hand = object['GameStartEvent']['hand'];
             playerNames = object['GameStartEvent']['players'];
+            gameLoop();
         } else if ('PublicGameStateEvent' in object) {
-            gameState = object['PublicGameStateEvent'];
-            updateGameScreen();
-            // curPhase = object['PublicGameStateEvent']['cur_phase']; // setup, play, complete
-/*             hands = object['PublicGameStateEvent']['hands'];
-            faceUpThree = object['PublicGameStateEvent']['face_up_three'];
-            faceDownThree = object['PublicGameStateEvent']['face_down_three'];
-            topCard = object['PublicGameStateEvent']['top_card'];
-            pileSize = object['PublicGameStateEvent']['pile_size'];
-            clearedSize = object['PublicGameStateEvent']['cleared_size'];
-            CurPhase = object['PublicGameStateEvent']['cur_phase']; // setup, play, complete
-            activePlayer = object['PublicGameStateEvent']['active_player'];
-            lastCardsPlayed = object['PublicGameStateEvent']['last_cards_played'];*/
+            gameStates.push(object['PublicGameStateEvent']);
+            // curPhase = object['PubliclatestGameStateEvent']['cur_phase']; // setup, play, complete
+/*             hands = object['PubliclatestGameStateEvent']['hands'];
+            faceUpThree = object['PubliclatestGameStateEvent']['face_up_three'];
+            faceDownThree = object['PubliclatestGameStateEvent']['face_down_three'];
+            topCard = object['PubliclatestGameStateEvent']['top_card'];
+            pileSize = object['PubliclatestGameStateEvent']['pile_size'];
+            clearedSize = object['PubliclatestGameStateEvent']['cleared_size'];
+            CurPhase = object['PubliclatestGameStateEvent']['cur_phase']; // setup, play, complete
+            activePlayer = object['PubliclatestGameStateEvent']['active_player'];
+            lastCardsPlayed = object['PubliclatestGameStateEvent']['last_cards_played'];*/
         } else if ('HandEvent' in object) {
             hand = object['HandEvent'];
-            updateGameScreen();
         } else {
             console.log("Unknown object: ");
             console.log(object);
@@ -388,12 +389,27 @@ function getAgeString(age) {
     }
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function gameLoop() {
+    while (true) {
+        while (gameStates.length == 0) {
+            await sleep(10);
+        }
+        latestGameState = gameStates.shift();
+        updateGameScreen();
+        await sleep(2000);
+    }
+}
+
 function updateGameScreen() {
 
     var trueLastValue = null;
     var lastIndex = 0;
-    recentCards = gameState['last_cards_played'].concat(recentCards);
-    recentCards = recentCards.slice(0, gameState['pile_size']);
+    recentCards = latestGameState['last_cards_played'].reverse().concat(recentCards);
+    recentCards = recentCards.slice(0, latestGameState['pile_size']);
     for (lastIndex = 0; lastIndex < recentCards.length; lastIndex++) {
         if (trueLastValue == null) {
             if (recentCards[lastIndex]['value'] != 'Four') {
@@ -416,17 +432,17 @@ function updateGameScreen() {
 
     // TABLE CARDS 
     newHtml = '<div id="other-players">';
-    for (i = 0; i < gameState['hands'].length; i++) {
+    for (i = 0; i < latestGameState['hands'].length; i++) {
         if (i != turnNumber) { // if player is not you
-            newHtml += generateTableHtml(gameState, i, playerNames[String(i)], turnNumber, setNum, backNum, 60);
+            newHtml += generateTableHtml(i, playerNames[String(i)], turnNumber, setNum, backNum, 60);
         }
     }
     newHtml += '</div>';
 
     // CARD STACK
     newHtml += '<div id="center-area"><div id="card-stack">';
-    if (gameState['top_card']) {
-        newHtml += generateCardHtml(gameState['top_card'], setNum, 150);
+    if (latestGameState['top_card']) {
+        newHtml += generateCardHtml(latestGameState['top_card'], setNum, 150);
     } else {
         newHtml += generateCardHtml({'value':'Two', 'suit':'Clubs'}, setNum, 150, false, true);
     }
@@ -437,27 +453,27 @@ function updateGameScreen() {
         newHtml += '<li>' + recentCards[i]['value'] + ' of ' + recentCards[i]['suit'] + '</li>';
     }
     newHtml += '</ul>';
-    newHtml += 'Cards on the stack: ' + gameState['pile_size'] + '</span></div>';
+    newHtml += 'Cards on the stack: ' + latestGameState['pile_size'] + '</span></div>';
     newHtml += '</div>';
 
     // PLAYER CARDS
     newHtml += '<div id="my-cards">';
     // player's table cards
     newHtml += '<div class="my-table" id="player-' + turnNumber + '">';
-    newHtml += generateTableHtml(gameState, turnNumber, playerName, turnNumber, setNum, backNum, 100);
+    newHtml += generateTableHtml(turnNumber, playerName, turnNumber, setNum, backNum, 100);
     newHtml += '</div>';
     // player's hand cards
     newHtml += '<div class="hand-cards" id="player-' + turnNumber + '">';
     hand = sortCards(hand);
     for (var i = 0; i < hand.length; i++) {
         var selectable = false;
-        if (gameState['active_player'] == turnNumber) {
+        if (latestGameState['active_player'] == turnNumber) {
             selectable = true;
         }
         newHtml += generateCardHtml(hand[i], setNum, 100, selectable);
     }
     newHtml += '</br><button type="button" id="play-cards"'
-    if (gameState['active_player'] != turnNumber) {
+    if (latestGameState['active_player'] != turnNumber) {
         newHtml += ' disabled';
     }
     newHtml += '>Play Cards</button>'
@@ -478,7 +494,7 @@ function updateGameScreen() {
                 selectedCards.push(cardName);
                 currentCards = document.querySelectorAll('img.card-front-img');
 
-                if (gameState['cur_phase'] == 'Setup') {
+                if (latestGameState['cur_phase'] == 'Setup') {
                     if (selectedCards.length >= 3) {
                         for (var i = 0; i < currentCards.length; i++) {
                             if (!currentCards[i].classList.contains('card-selected')) {
@@ -499,7 +515,7 @@ function updateGameScreen() {
                 var index = selectedCards.indexOf(cardName);
                 selectedCards.splice(index, 1);
 
-                if (gameState['cur_phase'] == 'Setup') {
+                if (latestGameState['cur_phase'] == 'Setup') {
                     disabledCards = document.querySelectorAll('img.card-disabled');
                     for (var i = 0; i < disabledCards.length; i++) {
                         disabledCards[i].classList.remove('card-disabled');
@@ -524,8 +540,7 @@ function updateGameScreen() {
                 'suit'  : cardInfo[1]
             })
         }
-        if (gameState['cur_phase'] == 'Setup') {
-            // TODO: add validation
+        if (latestGameState['cur_phase'] == 'Setup') {
             var chooseFaceupBlob = new Blob(
                 [JSON.stringify(
                     {
@@ -542,8 +557,7 @@ function updateGameScreen() {
             );
             socket.send(chooseFaceupBlob);
             selectedCards = [];
-        } else if (gameState['cur_phase'] == 'Play') {
-            // TODO: add validation
+        } else if (latestGameState['cur_phase'] == 'Play') {
             var makePlayBlob = new Blob(
                 [JSON.stringify(
                     {
@@ -561,30 +575,30 @@ function updateGameScreen() {
     });
 }
 
-function generateTableHtml(gameState, playerId, playerName, myId, setNum, backNum, cardWidth) {
+function generateTableHtml(playerId, playerName, myId, setNum, backNum, cardWidth) {
 
     html = '<div class="player" id="player-' + playerId + '">';
 
     if (playerId != myId) {
         html += '<h3>';
-        if (gameState['active_player'] == playerId) {
+        if (latestGameState['active_player'] == playerId) {
             html += ' <img class="table-icons" src="./img/icons/star.svg">';
         }
         html += playerName + ' (' + (playerId+1) + ')</h3>';
-        html += '<p>' + gameState['hands'][playerId] + ' cards in hand</p>';
+        html += '<p>' + latestGameState['hands'][playerId] + ' cards in hand</p>';
     }
 
-    for (j = 0; j < gameState['face_up_three'][playerId].length; j++) {
+    for (j = 0; j < latestGameState['face_up_three'][playerId].length; j++) {
         var selectable = false;
-        if (playerId == gameState['active_player'] && (gameState['cur_phase'] == 'Setup' || gameState['hands'][myId] == 0)) {
+        if (playerId == latestGameState['active_player'] && (latestGameState['cur_phase'] == 'Setup' || latestGameState['hands'][myId] == 0)) {
             selectable = true;
         }
-        html += generateCardHtml(gameState['face_up_three'][playerId][j], setNum, cardWidth, selectable);
+        html += generateCardHtml(latestGameState['face_up_three'][playerId][j], setNum, cardWidth, selectable);
     }
 
     html += '</br>';
 
-    for (j = 0; j < gameState['face_down_three'][playerId]; j++) {
+    for (j = 0; j < latestGameState['face_down_three'][playerId]; j++) {
         html += '<img class="card" src="img/backs/back-' + backNum + '.svg" width="' + cardWidth + 'px">';
     }
 
