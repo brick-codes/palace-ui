@@ -4,7 +4,7 @@ pipeline {
   stages {
     stage('Deploy') {
       when {
-        expression { env.BRANCH_NAME == "auto-deploy" }
+        expression { env.BRANCH_NAME == "master" }
       }
       steps {
         sshagent (credentials: ['jenkins-ssh-nfs']) {
