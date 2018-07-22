@@ -15,8 +15,7 @@ recentCards = [];
 setNum = 3;
 backNum = 1;
 
-// socket = new WebSocket("ws://dev.brick.codes:3012");
-socket = new WebSocket("ws://192.168.1.39:3012");
+socket = new WebSocket("ws://dev.brick.codes:3012");
 
 function init() {
     if (somethingLoaded) {
