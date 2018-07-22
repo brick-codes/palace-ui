@@ -8,7 +8,7 @@ pipeline {
       }
       steps {
         sshagent (credentials: ['jenkins-ssh-nfs']) {
-          sh 'scp -o StrictHostKeyChecking=no -r . flandoo_brickcodes@ssh.phx.nearlyfreespeech.net:/home/public/palace'
+          sh 'scp -o StrictHostKeyChecking=no -rp . flandoo_brickcodes@ssh.phx.nearlyfreespeech.net:/home/public/palace'
         }
       }
     }
