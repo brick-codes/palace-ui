@@ -18,7 +18,7 @@ turnLength = 30;
 timerIsActive = false;
 turnTimeRemaining = turnLength;
 
-socket = new WebSocket("ws://dev.brick.codes:3012");
+socket = new WebSocket("wss://dev.brick.codes/palace");
 
 function init() {
     if (somethingLoaded) {
