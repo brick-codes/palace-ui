@@ -14,6 +14,9 @@ selectedCards = [];
 recentCards = [];
 setNum = 3;
 backNum = 1;
+turnLength = 30;
+timerIsActive = false;
+turnTimeRemaining = turnLength;
 
 socket = new WebSocket("ws://dev.brick.codes:3012");
 
@@ -118,6 +121,16 @@ socket.addEventListener('message', function (event) {
             gameLoop();
         } else if ('PublicGameStateEvent' in object) {
             gameStates.push(object['PublicGameStateEvent']);
+            if (object['PublicGameStateEvent']['active_player'] != turnNumber) {
+                timerIsActive = false;
+            } else {
+                var innerBar = document.getElementById('timer-bar-inner').style['background-color'] = 'blue';
+                turnTimeRemaining = turnLength;
+                if (!timerIsActive) {
+                    timerIsActive = true;
+                    turnTimer();
+                }
+            }
             // curPhase = object['PubliclatestGameStateEvent']['cur_phase']; // setup, play, complete
 /*             hands = object['PubliclatestGameStateEvent']['hands'];
             faceUpThree = object['PubliclatestGameStateEvent']['face_up_three'];
@@ -392,6 +405,20 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function turnTimer() {
+    if (timerIsActive && turnTimeRemaining > 0) {
+        console.log('Seconds left: ' + turnTimeRemaining);
+        turnTimeRemaining -= 1;
+        var percentRemaining = turnTimeRemaining / turnLength;
+        var innerBar = document.getElementById('timer-bar-inner');
+        if (percentRemaining <= 0.2) {
+            innerBar.style['background-color'] = 'red';
+        }
+        document.getElementById('timer-bar-inner').style.width = ('' + (percentRemaining * 100) + '%');
+        setTimeout(turnTimer, 1000);
+    }
+}
+
 async function gameLoop() {
     while (true) {
         while (gameStates.length == 0) {
@@ -429,8 +456,18 @@ function updateGameScreen() {
         }
     }
 
+    if (document.getElementById('timer-bar-inner') != null) {
+        document.getElementById('timer-bar-inner').style.visibility = 'hidden';
+    }
+
+    // TIMER BAR
+    newHtml = '<div id="timer-bar-outer">';
+    newHtml += '<div id="timer-bar-inner">';
+    newHtml += '</div>';
+    newHtml += '</div>';
+
     // TABLE CARDS 
-    newHtml = '<div id="other-players">';
+    newHtml += '<div id="other-players">';
     for (i = 0; i < latestGameState['hands'].length; i++) {
         if (i != turnNumber) { // if player is not you
             newHtml += generateTableHtml(i, playerNames[String(i)], turnNumber, setNum, backNum, 60);
@@ -480,6 +517,10 @@ function updateGameScreen() {
     newHtml += '</div>';
 
     document.getElementById('landing').innerHTML = newHtml;
+
+    if (latestGameState['active_player'] == turnNumber) {
+        document.getElementById('timer-bar-inner').style.visibility = 'visible';
+    }
 
     document.getElementById('my-cards').addEventListener('click', function(event) {
 
