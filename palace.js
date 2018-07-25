@@ -15,7 +15,7 @@ recentCards = [];
 setNum = 3;
 backNum = 1;
 
-socket = new WebSocket("ws://dev.brick.codes:3012");
+socket = new WebSocket("wss://dev.brick.codes/palace");
 
 function init() {
     if (somethingLoaded) {
