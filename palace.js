@@ -16,7 +16,7 @@ setNum = 3;
 backNum = 1;
 turnLength = 30;
 timerIsActive = false;
-turnTimeRemaining = turnLength;
+turnEndTime = null;
 
 socket = new WebSocket("wss://dev.brick.codes/palace");
 
@@ -123,13 +123,11 @@ socket.addEventListener('message', function (event) {
             gameStates.push(object['PublicGameStateEvent']);
             if (object['PublicGameStateEvent']['active_player'] != turnNumber) {
                 timerIsActive = false;
+
             } else {
                 var innerBar = document.getElementById('timer-bar-inner').style['background-color'] = 'blue';
-                turnTimeRemaining = turnLength;
-                if (!timerIsActive) {
-                    timerIsActive = true;
-                    turnTimer();
-                }
+                turnEndTime = new Date();
+                turnEndTime.setSeconds(turnEndTime.getSeconds() + turnLength);
             }
             // curPhase = object['PubliclatestGameStateEvent']['cur_phase']; // setup, play, complete
 /*             hands = object['PubliclatestGameStateEvent']['hands'];
@@ -405,17 +403,17 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function turnTimer() {
-    if (timerIsActive && turnTimeRemaining > 0) {
-        console.log('Seconds left: ' + turnTimeRemaining);
-        turnTimeRemaining -= 1;
-        var percentRemaining = turnTimeRemaining / turnLength;
+async function turnTimer(effectiveTurnLength) {
+    var now = new Date();
+    if (timerIsActive && turnEndTime > now) {
+        var percentRemaining = ((turnEndTime - now) / 1000) / effectiveTurnLength;
+        console.log('Seconds left: ' + ((turnEndTime - now) / 1000));
         var innerBar = document.getElementById('timer-bar-inner');
         if (percentRemaining <= 0.2) {
             innerBar.style['background-color'] = 'red';
         }
         document.getElementById('timer-bar-inner').style.width = ('' + (percentRemaining * 100) + '%');
-        setTimeout(turnTimer, 1000);
+        setTimeout(turnTimer, 1000, effectiveTurnLength);
     }
 }
 
@@ -456,13 +454,9 @@ function updateGameScreen() {
         }
     }
 
-    if (document.getElementById('timer-bar-inner') != null) {
-        document.getElementById('timer-bar-inner').style.visibility = 'hidden';
-    }
-
     // TIMER BAR
     newHtml = '<div id="timer-bar-outer">';
-    newHtml += '<div id="timer-bar-inner">';
+    newHtml += '<div id="timer-bar-inner" style="visibility:hidden">';
     newHtml += '</div>';
     newHtml += '</div>';
 
@@ -519,7 +513,12 @@ function updateGameScreen() {
     document.getElementById('landing').innerHTML = newHtml;
 
     if (latestGameState['active_player'] == turnNumber) {
+        var now = new Date();
+        var effectiveTurnLength = (turnEndTime - now) / 1000;
+        console.log('Effective turn length: ' + effectiveTurnLength);
         document.getElementById('timer-bar-inner').style.visibility = 'visible';
+        timerIsActive = true;
+        turnTimer(effectiveTurnLength);
     }
 
     document.getElementById('my-cards').addEventListener('click', function(event) {
