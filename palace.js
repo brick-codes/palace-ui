@@ -14,7 +14,7 @@ selectedCards = [];
 recentCards = [];
 setNum = 3;
 backNum = 1;
-turnLength = 30;
+turnLength = null;
 timerIsActive = false;
 turnEndTime = null;
 
@@ -161,6 +161,7 @@ function loadEventListeners() {
 
         var maxPlayers = Number(document.getElementById('max-players-input').value);
         var lobbyName = document.getElementById('lobby-name-input').value;
+        var turnTimer = document.getElementById('turn-timer-input').value;
         playerName = document.getElementById('owner-name-input').value;
         if (document.getElementById('private-checkbox').checked) {
             var password = document.getElementById('password-input').value;
@@ -174,6 +175,8 @@ function loadEventListeners() {
             window.alert('Error creating lobby.\nPlease enter a max players amount between 2 and 8 (inclusive).');
         } else if (document.getElementById('private-checkbox').checked && password == '') {
             window.alert('Error creating lobby.\nFor a private lobby, please enter a password.');
+        } else if (turnTimer < 0 || turnTimer > 255) {
+            window.alert('Error creating lobby.\nPlease entera turn timer length between 0 and 255 (inclusive).\(Note: 0 means no turn limit.)');
         } else {
             var newLobbyBlob = new Blob(
                 [JSON.stringify(
@@ -182,7 +185,8 @@ function loadEventListeners() {
                             "max_players" : maxPlayers,
                             "password"    : password,
                             "lobby_name"  : lobbyName,
-                            "player_name" : playerName
+                            "player_name" : playerName,
+                            "turn_timer"  : turnTimer
                         }
                     }
                 )],
@@ -293,6 +297,7 @@ function updateLobbiesTable(lobbies) {
             '<span id="join-lobby" lobby-id="' + lobbies[i]['lobby_id'] + '" password-protected="' + lobbies[i]['has_password'] + '">' + lobbies[i]['name'] + '</span>',
             lobbies[i]['owner'],
             '' + lobbies[i]['cur_players'] + '/' + lobbies[i]['max_players'],
+            (lobbies[i]['turn_timer'] == 0) ? 'No turn limit' : '' + lobbies[i]['turn_timer'] + 's',
             lobbies[i]['has_password'] ? '<img class="table-icons" src="./img/icons/lock.svg">' : '<img class="table-icons" src="./img/icons/unlock.svg">',
             getAgeString(lobbies[i]['age']),
             lobbies[i]['started'] ? 'In Progress (spectate)' : 'Waiting to Begin'
@@ -304,6 +309,7 @@ function updateLobbiesTable(lobbies) {
             "Lobby Name",
             "Lobby Owner",
             "Number of Players",
+            "Turn Timer",
             "Password Protected?",
             "Lobby Age",
             "Game Status"
