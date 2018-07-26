@@ -407,7 +407,6 @@ async function turnTimer(effectiveTurnLength) {
     var now = new Date();
     if (timerIsActive && turnEndTime > now) {
         var percentRemaining = ((turnEndTime - now) / 1000) / effectiveTurnLength;
-        console.log('Seconds left: ' + ((turnEndTime - now) / 1000));
         var innerBar = document.getElementById('timer-bar-inner');
         if (percentRemaining <= 0.2) {
             innerBar.style['background-color'] = 'red';
@@ -515,7 +514,6 @@ function updateGameScreen() {
     if (latestGameState['active_player'] == turnNumber) {
         var now = new Date();
         var effectiveTurnLength = (turnEndTime - now) / 1000;
-        console.log('Effective turn length: ' + effectiveTurnLength);
         document.getElementById('timer-bar-inner').style.visibility = 'visible';
         timerIsActive = true;
         turnTimer(effectiveTurnLength);
@@ -544,7 +542,6 @@ function updateGameScreen() {
                 } else {
                     var value = selectedCards[0].split(' ')[0];
                     for (var i = 0; i < currentCards.length; i++) {
-                        console.log(currentCards[i].getAttribute('card-value'));
                         if (!currentCards[i].classList.contains('card-selected') && currentCards[i].getAttribute('card-value') != value) {
                             currentCards[i].classList.add('card-disabled');
                         }
