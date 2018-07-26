@@ -127,7 +127,7 @@ socket.addEventListener('message', function (event) {
 
             } else {
                 turnEndTime = new Date();
-                turnEndTime.setSeconds(turnEndTime.getSeconds() + turnLength);
+                turnEndTime.setSeconds(Math.floor(turnEndTime.getSeconds()) + turnLength);
             }
             // curPhase = object['PubliclatestGameStateEvent']['cur_phase']; // setup, play, complete
 /*             hands = object['PubliclatestGameStateEvent']['hands'];
@@ -412,7 +412,7 @@ function sleep(ms) {
 async function turnTimer(effectiveTurnLength) {
     var now = new Date();
     if (timerIsActive && turnEndTime > now) {
-        var percentRemaining = ((turnEndTime - now) / 1000) / effectiveTurnLength;
+        var percentRemaining = (turnLength == 0) ? 1 : ((turnEndTime - now) / 1000) / effectiveTurnLength;
         var innerBar = document.getElementById('timer-bar-inner');
         if (percentRemaining <= 0.2) {
             innerBar.style['background-color'] = 'red';
