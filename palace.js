@@ -59,6 +59,7 @@ socket.addEventListener('message', function (event) {
         } else if ('JoinLobbyResponse' in object) {
             if ('Ok' in object['JoinLobbyResponse']) {
                 playerToken = object['JoinLobbyResponse']['Ok']['player_id'];
+                turnLength  = object['JoinLobbyResponse']['Ok']['turn_timer'];
                 enterLobbyScreen(object['JoinLobbyResponse']['Ok']['lobby_players'], object['JoinLobbyResponse']['Ok']['max_players'], false);
             } else if ('Err' in object['JoinLobbyResponse']) {
                 var errorResponseString = 'Error joining lobby: ';
@@ -125,7 +126,6 @@ socket.addEventListener('message', function (event) {
                 timerIsActive = false;
 
             } else {
-                var innerBar = document.getElementById('timer-bar-inner').style['background-color'] = 'blue';
                 turnEndTime = new Date();
                 turnEndTime.setSeconds(turnEndTime.getSeconds() + turnLength);
             }
@@ -161,7 +161,7 @@ function loadEventListeners() {
 
         var maxPlayers = Number(document.getElementById('max-players-input').value);
         var lobbyName = document.getElementById('lobby-name-input').value;
-        var turnLimit = Number(document.getElementById('turn-timer-input').value);
+        turnLength = Number(document.getElementById('turn-timer-input').value);
         playerName = document.getElementById('owner-name-input').value;
         if (document.getElementById('private-checkbox').checked) {
             var password = document.getElementById('password-input').value;
@@ -175,7 +175,7 @@ function loadEventListeners() {
             window.alert('Error creating lobby.\nPlease enter a max players amount between 2 and 8 (inclusive).');
         } else if (document.getElementById('private-checkbox').checked && password == '') {
             window.alert('Error creating lobby.\nFor a private lobby, please enter a password.');
-        } else if (turnLimit < 0 || turnLimit > 255) {
+        } else if (turnLength < 0 || turnLength > 255) {
             window.alert('Error creating lobby.\nPlease entera turn timer length between 0 and 255 (inclusive).\(Note: 0 means no turn limit.)');
         } else {
             var newLobbyBlob = new Blob(
@@ -186,7 +186,7 @@ function loadEventListeners() {
                             "password"    : password,
                             "lobby_name"  : lobbyName,
                             "player_name" : playerName,
-                            "turn_timer"  : turnLimit
+                            "turn_timer"  : turnLength
                         }
                     }
                 )],
@@ -461,7 +461,7 @@ function updateGameScreen() {
 
     // TIMER BAR
     newHtml = '<div id="timer-bar-outer">';
-    newHtml += '<div id="timer-bar-inner" style="visibility:hidden">';
+    newHtml += '<div id="timer-bar-inner" style="visibility:hidden;background-color:blue">';
     newHtml += '</div>';
     newHtml += '</div>';
 
