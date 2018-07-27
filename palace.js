@@ -411,8 +411,12 @@ function sleep(ms) {
 
 async function turnTimer(effectiveTurnLength) {
     var now = new Date();
-    if (timerIsActive && turnEndTime > now) {
-        var percentRemaining = (turnLength == 0) ? 1 : ((turnEndTime - now) / 1000) / effectiveTurnLength;
+    if (timerIsActive && turnEndTime >= now) {
+        var timeRemaining = Math.floor((turnEndTime - now) / 1000);
+        if (timeRemaining < 0) {
+            timeRemaining = 0;
+        }
+        var percentRemaining = (turnLength == 0) ? 1 : timeRemaining / effectiveTurnLength;
         var innerBar = document.getElementById('timer-bar-inner');
         if (percentRemaining <= 0.2) {
             innerBar.style['background-color'] = 'red';
@@ -429,7 +433,7 @@ async function gameLoop() {
         }
         latestGameState = gameStates.shift();
         updateGameScreen();
-        await sleep(2000);
+        await sleep(1000);
     }
 }
 
