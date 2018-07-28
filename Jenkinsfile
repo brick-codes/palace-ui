@@ -1,16 +1,16 @@
 pipeline {
-  agent any
+   agent any
 
-  stages {
-    stage('Deploy') {
-      when {
-        expression { env.BRANCH_NAME == "master" }
+   stages {
+      stage('Deploy') {
+         when {
+            expression { env.BRANCH_NAME == "master" }
+         }
+         steps {
+            sshagent (credentials: ['jenkins-ssh-nfs']) {
+               sh 'rsync -avr -e "ssh -l flandoo_brickcodes -o StrictHostKeyChecking=no" --exclude ".git" . ssh.phx.nearlyfreespeech.net:/home/public/palace'
+            }
+         }
       }
-      steps {
-        sshagent (credentials: ['jenkins-ssh-nfs']) {
-          sh 'scp -o StrictHostKeyChecking=no -rp . flandoo_brickcodes@ssh.phx.nearlyfreespeech.net:/home/public/palace'
-        }
-      }
-    }
-  }
+   }
 }
