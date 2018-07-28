@@ -14,6 +14,9 @@ selectedCards = [];
 recentCards = [];
 setNum = 3;
 backNum = 1;
+turnLength = null;
+timerIsActive = false;
+turnEndTime = null;
 
 socket = new WebSocket("wss://dev.brick.codes/palace");
 
@@ -56,6 +59,7 @@ socket.addEventListener('message', function (event) {
         } else if ('JoinLobbyResponse' in object) {
             if ('Ok' in object['JoinLobbyResponse']) {
                 playerToken = object['JoinLobbyResponse']['Ok']['player_id'];
+                turnLength  = object['JoinLobbyResponse']['Ok']['turn_timer'];
                 enterLobbyScreen(object['JoinLobbyResponse']['Ok']['lobby_players'], object['JoinLobbyResponse']['Ok']['max_players'], false);
             } else if ('Err' in object['JoinLobbyResponse']) {
                 var errorResponseString = 'Error joining lobby: ';
@@ -118,6 +122,13 @@ socket.addEventListener('message', function (event) {
             gameLoop();
         } else if ('PublicGameStateEvent' in object) {
             gameStates.push(object['PublicGameStateEvent']);
+            if (object['PublicGameStateEvent']['active_player'] != turnNumber) {
+                timerIsActive = false;
+
+            } else {
+                turnEndTime = new Date();
+                turnEndTime.setSeconds(Math.floor(turnEndTime.getSeconds()) + turnLength);
+            }
             // curPhase = object['PubliclatestGameStateEvent']['cur_phase']; // setup, play, complete
 /*             hands = object['PubliclatestGameStateEvent']['hands'];
             faceUpThree = object['PubliclatestGameStateEvent']['face_up_three'];
@@ -150,6 +161,7 @@ function loadEventListeners() {
 
         var maxPlayers = Number(document.getElementById('max-players-input').value);
         var lobbyName = document.getElementById('lobby-name-input').value;
+        turnLength = Number(document.getElementById('turn-timer-input').value);
         playerName = document.getElementById('owner-name-input').value;
         if (document.getElementById('private-checkbox').checked) {
             var password = document.getElementById('password-input').value;
@@ -163,6 +175,8 @@ function loadEventListeners() {
             window.alert('Error creating lobby.\nPlease enter a max players amount between 2 and 8 (inclusive).');
         } else if (document.getElementById('private-checkbox').checked && password == '') {
             window.alert('Error creating lobby.\nFor a private lobby, please enter a password.');
+        } else if (turnLength < 0 || turnLength > 255) {
+            window.alert('Error creating lobby.\nPlease entera turn timer length between 0 and 255 (inclusive).\(Note: 0 means no turn limit.)');
         } else {
             var newLobbyBlob = new Blob(
                 [JSON.stringify(
@@ -171,7 +185,8 @@ function loadEventListeners() {
                             "max_players" : maxPlayers,
                             "password"    : password,
                             "lobby_name"  : lobbyName,
-                            "player_name" : playerName
+                            "player_name" : playerName,
+                            "turn_timer"  : turnLength
                         }
                     }
                 )],
@@ -282,6 +297,7 @@ function updateLobbiesTable(lobbies) {
             '<span id="join-lobby" lobby-id="' + lobbies[i]['lobby_id'] + '" password-protected="' + lobbies[i]['has_password'] + '">' + lobbies[i]['name'] + '</span>',
             lobbies[i]['owner'],
             '' + lobbies[i]['cur_players'] + '/' + lobbies[i]['max_players'],
+            (lobbies[i]['turn_timer'] == 0) ? 'No turn timer' : '' + lobbies[i]['turn_timer'] + ' seconds',
             lobbies[i]['has_password'] ? '<img class="table-icons" src="./img/icons/lock.svg">' : '<img class="table-icons" src="./img/icons/unlock.svg">',
             getAgeString(lobbies[i]['age']),
             lobbies[i]['started'] ? 'In Progress (spectate)' : 'Waiting to Begin'
@@ -293,6 +309,7 @@ function updateLobbiesTable(lobbies) {
             "Lobby Name",
             "Lobby Owner",
             "Number of Players",
+            "Turn Timer",
             "Password Protected?",
             "Lobby Age",
             "Game Status"
@@ -392,6 +409,23 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function turnTimer(effectiveTurnLength) {
+    var now = new Date();
+    if (timerIsActive && turnEndTime >= now) {
+        var timeRemaining = Math.floor((turnEndTime - now) / 1000);
+        if (timeRemaining < 0) {
+            timeRemaining = 0;
+        }
+        var percentRemaining = (turnLength == 0) ? 1 : timeRemaining / effectiveTurnLength;
+        var innerBar = document.getElementById('timer-bar-inner');
+        if (percentRemaining <= 0.2) {
+            innerBar.style['background-color'] = 'red';
+        }
+        document.getElementById('timer-bar-inner').style.width = ('' + (percentRemaining * 100) + '%');
+        setTimeout(turnTimer, 1000, effectiveTurnLength);
+    }
+}
+
 async function gameLoop() {
     while (true) {
         while (gameStates.length == 0) {
@@ -399,7 +433,7 @@ async function gameLoop() {
         }
         latestGameState = gameStates.shift();
         updateGameScreen();
-        await sleep(2000);
+        await sleep(1000);
     }
 }
 
@@ -429,8 +463,14 @@ function updateGameScreen() {
         }
     }
 
+    // TIMER BAR
+    newHtml = '<div id="timer-bar-outer">';
+    newHtml += '<div id="timer-bar-inner" style="visibility:hidden;background-color:blue">';
+    newHtml += '</div>';
+    newHtml += '</div>';
+
     // TABLE CARDS 
-    newHtml = '<div id="other-players">';
+    newHtml += '<div id="other-players">';
     for (i = 0; i < latestGameState['hands'].length; i++) {
         if (i != turnNumber) { // if player is not you
             newHtml += generateTableHtml(i, playerNames[String(i)], turnNumber, setNum, backNum, 60);
@@ -481,6 +521,14 @@ function updateGameScreen() {
 
     document.getElementById('landing').innerHTML = newHtml;
 
+    if (latestGameState['active_player'] == turnNumber) {
+        var now = new Date();
+        var effectiveTurnLength = (turnEndTime - now) / 1000;
+        document.getElementById('timer-bar-inner').style.visibility = 'visible';
+        timerIsActive = true;
+        turnTimer(effectiveTurnLength);
+    }
+
     document.getElementById('my-cards').addEventListener('click', function(event) {
 
         if (event.target && event.target.matches('img.card-front-img') && !event.target.classList.contains('card-disabled')) {
@@ -504,7 +552,6 @@ function updateGameScreen() {
                 } else {
                     var value = selectedCards[0].split(' ')[0];
                     for (var i = 0; i < currentCards.length; i++) {
-                        console.log(currentCards[i].getAttribute('card-value'));
                         if (!currentCards[i].classList.contains('card-selected') && currentCards[i].getAttribute('card-value') != value) {
                             currentCards[i].classList.add('card-disabled');
                         }
