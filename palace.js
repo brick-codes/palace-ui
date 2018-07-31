@@ -80,6 +80,10 @@ socket.addEventListener('message', function (event) {
         } else if ('ListLobbiesResponse' in object) {
             updateLobbiesTable(object['ListLobbiesResponse']);
         } else if ('PlayerJoinEvent' in object) {
+            var startButton = document.getElementById('start-game-button');
+            if (startButton != null) {
+                startButton.disabled = false;
+            }
             updatePlayerTable(object['PlayerJoinEvent']['new_player_name']);
         } else if ('RequestAiResponse' in object) {
             if ('Ok' in object['RequestAiResponse']) {
@@ -347,7 +351,7 @@ function enterLobbyScreen(players, maxPlayers, isLobbyOwner = false) {
     if (isLobbyOwner) {
         lobbyControls  = "<form id=\"lobby-buttons\">";
         lobbyControls += "<button type=\"button\" id=\"add-bot-button\">Add Bot</button> ";
-        lobbyControls += "<button type=\"button\" id=\"start-game-button\">Start Game</button>";
+        lobbyControls += "<button type=\"button\" id=\"start-game-button\" disabled>Start Game</button>";
         lobbyControls += "</form>";
         document.getElementById('lobby-controls').innerHTML = lobbyControls;
 
