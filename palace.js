@@ -9,6 +9,7 @@ curPhase = '';
 turnNumber = null;
 gameStates = [];
 latestGameState = null;
+prevGameState = null;
 hand = null;
 selectedCards = [];
 recentCards = [];
@@ -125,10 +126,19 @@ socket.addEventListener('message', function (event) {
             playerNames = object['GameStartEvent']['players'];
             gameLoop();
         } else if ('PublicGameStateEvent' in object) {
+            if (object['PublicGameStateEvent']['top_card'] == null && prevGameState != null) {
+                var intermediateState = JSON.parse(JSON.stringify(prevGameState)); // ha ha, I love JS \s
+                var numOfCardsPlayed = object['PublicGameStateEvent']['last_cards_played'].length;
+                intermediateState['active_player'] = null;
+                intermediateState['pile_size'] += numOfCardsPlayed;
+                intermediateState['last_cards_played'] = object['PublicGameStateEvent']['last_cards_played'];
+                intermediateState['top_card'] = object['PublicGameStateEvent']['last_cards_played'][numOfCardsPlayed - 1];
+                gameStates.push(intermediateState);
+            }
+            prevGameState = object['PublicGameStateEvent'];
             gameStates.push(object['PublicGameStateEvent']);
             if (object['PublicGameStateEvent']['active_player'] != turnNumber) {
                 timerIsActive = false;
-
             } else {
                 turnEndTime = new Date();
                 turnEndTime.setSeconds(Math.floor(turnEndTime.getSeconds()) + turnLength);
@@ -443,18 +453,22 @@ async function gameLoop() {
 
 function updateGameScreen() {
 
-    var trueLastValue = null;
-    var lastIndex = 0;
-    recentCards = latestGameState['last_cards_played'].reverse().concat(recentCards);
-    recentCards = recentCards.slice(0, latestGameState['pile_size']);
-    for (lastIndex = 0; lastIndex < recentCards.length; lastIndex++) {
-        if (trueLastValue == null) {
-            if (recentCards[lastIndex]['value'] != 'Four') {
-                trueLastValue = recentCards[lastIndex]['value'];
-            }
-        } else {
-            if (recentCards[lastIndex]['value'] != 'Four' && trueLastValue != null && recentCards[lastIndex]['value'] != trueLastValue) {
-                break;
+    if (latestGameState['active_player'] == null) {
+        recentCards = latestGameState['last_cards_played'].concat(recentCards);
+    } else {
+        var trueLastValue = null;
+        var lastIndex = 0;
+        recentCards = latestGameState['last_cards_played'].reverse().concat(recentCards);
+        recentCards = recentCards.slice(0, latestGameState['pile_size']);
+        for (lastIndex = 0; lastIndex < recentCards.length; lastIndex++) {
+            if (trueLastValue == null) {
+                if (recentCards[lastIndex]['value'] != 'Four') {
+                    trueLastValue = recentCards[lastIndex]['value'];
+                }
+            } else {
+                if (recentCards[lastIndex]['value'] != 'Four' && trueLastValue != null && recentCards[lastIndex]['value'] != trueLastValue) {
+                    break;
+                }
             }
         }
     }
