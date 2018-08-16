@@ -9,6 +9,7 @@ curPhase = '';
 turnNumber = null;
 gameStates = [];
 latestGameState = null;
+prevGameState = null;
 hand = null;
 selectedCards = [];
 recentCards = [];
@@ -32,6 +33,11 @@ function init() {
 
 socket.onopen = init;
 window.onload = init;
+
+socket.onerror = function() {
+    document.getElementById('table-header').innerText = 'Could not connect to server. Please try again later.';
+    document.getElementById('table-header').style.textAlign = 'center';
+}
 
 socket.addEventListener('message', function (event) {
     var reader = new FileReader();
@@ -80,6 +86,10 @@ socket.addEventListener('message', function (event) {
         } else if ('ListLobbiesResponse' in object) {
             updateLobbiesTable(object['ListLobbiesResponse']);
         } else if ('PlayerJoinEvent' in object) {
+            var startButton = document.getElementById('start-game-button');
+            if (startButton != null) {
+                startButton.disabled = false;
+            }
             updatePlayerTable(object['PlayerJoinEvent']['new_player_name']);
         } else if ('RequestAiResponse' in object) {
             if ('Ok' in object['RequestAiResponse']) {
@@ -121,10 +131,19 @@ socket.addEventListener('message', function (event) {
             playerNames = object['GameStartEvent']['players'];
             gameLoop();
         } else if ('PublicGameStateEvent' in object) {
+            if (object['PublicGameStateEvent']['top_card'] == null && prevGameState != null) {
+                var intermediateState = JSON.parse(JSON.stringify(prevGameState)); // ha ha, I love JS \s
+                var numOfCardsPlayed = object['PublicGameStateEvent']['last_cards_played'].length;
+                intermediateState['active_player'] = null;
+                intermediateState['pile_size'] += numOfCardsPlayed;
+                intermediateState['last_cards_played'] = object['PublicGameStateEvent']['last_cards_played'];
+                intermediateState['top_card'] = object['PublicGameStateEvent']['last_cards_played'][numOfCardsPlayed - 1];
+                gameStates.push(intermediateState);
+            }
+            prevGameState = object['PublicGameStateEvent'];
             gameStates.push(object['PublicGameStateEvent']);
             if (object['PublicGameStateEvent']['active_player'] != turnNumber) {
                 timerIsActive = false;
-
             } else {
                 turnEndTime = new Date();
                 turnEndTime.setSeconds(Math.floor(turnEndTime.getSeconds()) + turnLength);
@@ -293,8 +312,9 @@ function updateLobbiesTable(lobbies) {
     rows = [];
 
     for (var i = 0; i < lobbies.length; i++) {
+        var joinLobbyLink = '<span id="join-lobby" lobby-id="' + lobbies[i]['lobby_id'] + '" password-protected="' + lobbies[i]['has_password'] + '">' + lobbies[i]['name'] + '</span>';
         rows[i] = [
-            '<span id="join-lobby" lobby-id="' + lobbies[i]['lobby_id'] + '" password-protected="' + lobbies[i]['has_password'] + '">' + lobbies[i]['name'] + '</span>',
+            (lobbies[i]['started'] || lobbies[i]['cur_players'] == lobbies[i]['max_players']) ? lobbies[i]['name'] : joinLobbyLink,
             lobbies[i]['owner'],
             '' + lobbies[i]['cur_players'] + '/' + lobbies[i]['max_players'],
             (lobbies[i]['turn_timer'] == 0) ? 'No turn timer' : '' + lobbies[i]['turn_timer'] + ' seconds',
@@ -347,7 +367,7 @@ function enterLobbyScreen(players, maxPlayers, isLobbyOwner = false) {
     if (isLobbyOwner) {
         lobbyControls  = "<form id=\"lobby-buttons\">";
         lobbyControls += "<button type=\"button\" id=\"add-bot-button\">Add Bot</button> ";
-        lobbyControls += "<button type=\"button\" id=\"start-game-button\">Start Game</button>";
+        lobbyControls += "<button type=\"button\" id=\"start-game-button\" disabled>Start Game</button>";
         lobbyControls += "</form>";
         document.getElementById('lobby-controls').innerHTML = lobbyControls;
 
@@ -439,18 +459,22 @@ async function gameLoop() {
 
 function updateGameScreen() {
 
-    var trueLastValue = null;
-    var lastIndex = 0;
-    recentCards = latestGameState['last_cards_played'].reverse().concat(recentCards);
-    recentCards = recentCards.slice(0, latestGameState['pile_size']);
-    for (lastIndex = 0; lastIndex < recentCards.length; lastIndex++) {
-        if (trueLastValue == null) {
-            if (recentCards[lastIndex]['value'] != 'Four') {
-                trueLastValue = recentCards[lastIndex]['value'];
-            }
-        } else {
-            if (recentCards[lastIndex]['value'] != 'Four' && trueLastValue != null && recentCards[lastIndex]['value'] != trueLastValue) {
-                break;
+    if (latestGameState['active_player'] == null) {
+        recentCards = latestGameState['last_cards_played'].concat(recentCards);
+    } else {
+        var trueLastValue = null;
+        var lastIndex = 0;
+        recentCards = latestGameState['last_cards_played'].reverse().concat(recentCards);
+        recentCards = recentCards.slice(0, latestGameState['pile_size']);
+        for (lastIndex = 0; lastIndex < recentCards.length; lastIndex++) {
+            if (trueLastValue == null) {
+                if (recentCards[lastIndex]['value'] != 'Four') {
+                    trueLastValue = recentCards[lastIndex]['value'];
+                }
+            } else {
+                if (recentCards[lastIndex]['value'] != 'Four' && trueLastValue != null && recentCards[lastIndex]['value'] != trueLastValue) {
+                    break;
+                }
             }
         }
     }
