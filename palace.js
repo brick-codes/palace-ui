@@ -34,6 +34,11 @@ function init() {
 socket.onopen = init;
 window.onload = init;
 
+socket.onerror = function() {
+    document.getElementById('table-header').innerText = 'Could not connect to server. Please try again later.';
+    document.getElementById('table-header').style.textAlign = 'center';
+}
+
 socket.addEventListener('message', function (event) {
     var reader = new FileReader();
     reader.addEventListener("loadend", function() {
@@ -307,8 +312,9 @@ function updateLobbiesTable(lobbies) {
     rows = [];
 
     for (var i = 0; i < lobbies.length; i++) {
+        var joinLobbyLink = '<span id="join-lobby" lobby-id="' + lobbies[i]['lobby_id'] + '" password-protected="' + lobbies[i]['has_password'] + '">' + lobbies[i]['name'] + '</span>';
         rows[i] = [
-            '<span id="join-lobby" lobby-id="' + lobbies[i]['lobby_id'] + '" password-protected="' + lobbies[i]['has_password'] + '">' + lobbies[i]['name'] + '</span>',
+            (lobbies[i]['started'] || lobbies[i]['cur_players'] == lobbies[i]['max_players']) ? lobbies[i]['name'] : joinLobbyLink,
             lobbies[i]['owner'],
             '' + lobbies[i]['cur_players'] + '/' + lobbies[i]['max_players'],
             (lobbies[i]['turn_timer'] == 0) ? 'No turn timer' : '' + lobbies[i]['turn_timer'] + ' seconds',
