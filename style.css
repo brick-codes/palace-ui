@@ -164,8 +164,28 @@ div.spectator-count {
 }
 
 span.spectator-count-span {
-    position: absolute;
+    position: fixed;
+    top: 20px;
+    right: 5px;
+    background-color: white;
+}
+
+div.overlay {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
     top: 0;
-    right: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    background-color:rgba(0,0,0,0.5);
+}
+
+div.overlay-text {
+    padding: 20px;
+    border-radius: 5px;
+    color: black;
     background-color: white;
 }

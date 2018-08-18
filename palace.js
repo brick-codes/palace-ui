@@ -50,23 +50,23 @@ socket.addEventListener('message', function (event) {
             if ('Ok' in object['NewLobbyResponse']) {
                 playerToken = object['NewLobbyResponse']['Ok']['player_id'];
                 lobbyToken  = object['NewLobbyResponse']['Ok']['lobby_id'];
-                enterLobbyScreen([], object['NewLobbyResponse']['Ok']['max_players'], 0, true);
+                enterLobbyScreen([], object['NewLobbyResponse']['Ok']['max_players'], true);
             } else if ('Err' in object['NewLobbyResponse']) {
                 var errorResponseString = 'Error creating lobby: ';
                 if (object['NewLobbyResponse']['Err'] == 'LessThanTwoMaxPlayers') {
-                    window.alert(errorResponseString + 'Max players must be at least 2.');
+                    createAlert(errorResponseString + 'Max players must be at least 2.');
                 } else if (object['NewLobbyResponse']['Err'] == 'EmptyLobbyName') {
-                    window.alert(errorResponseString + 'Lobby name cannot be empty.');
+                    createAlert(errorResponseString + 'Lobby name cannot be empty.');
                 } else if (object['NewLobbyResponse']['Err'] == 'EmptyPlayerName') {
-                    window.alert(errorResponseString + 'Player name cannot be empty.');
+                    createAlert(errorResponseString + 'Player name cannot be empty.');
                 } else if (object['NewLobbyResponse']['Err'] == 'LobbyNameTooLong') {
-                    window.alert(errorResponseString + 'Lobby name is too long. Please enter a lobby name that is <= 20 characters.');
+                    createAlert(errorResponseString + 'Lobby name is too long. Please enter a lobby name that is <= 20 characters.');
                 } else if (object['NewLobbyResponse']['Err'] == 'PlayerNameTooLong') {
-                    window.alert(errorResponseString + 'Player name is too long. Please enter a player name that is <= 20 characters.');
+                    createAlert(errorResponseString + 'Player name is too long. Please enter a player name that is <= 20 characters.');
                 } else if (object['NewLobbyResponse']['Err'] == 'PasswordTooLong') {
-                    window.alert(errorResponseString + 'Password is too long. Please enter a password that is <= 20 characters.');
+                    createAlert(errorResponseString + 'Password is too long. Please enter a password that is <= 20 characters.');
                 } else {
-                    window.alert(errorResponseString + 'Unknown error.');
+                    createAlert(errorResponseString + 'Unknown error.');
                 }
             }
         } else if ('JoinLobbyResponse' in object) {
@@ -78,19 +78,19 @@ socket.addEventListener('message', function (event) {
             } else if ('Err' in object['JoinLobbyResponse']) {
                 var errorResponseString = 'Error joining lobby: ';
                 if (object['JoinLobbyResponse']['Err'] == 'LobbyNotFound') {
-                    window.alert(errorResponseString + 'Lobby not found.');
+                    createAlert(errorResponseString + 'Lobby not found.');
                 } else if (object['JoinLobbyResponse']['Err'] == 'LobbyFull') {
-                    window.alert(errorResponseString + 'Lobby is full.');
+                    createAlert(errorResponseString + 'Lobby is full.');
                 } else if (object['JoinLobbyResponse']['Err'] == 'BadPassword') {
-                    window.alert(errorResponseString + 'Invalid password.');
+                    createAlert(errorResponseString + 'Invalid password.');
                 } else if (object['JoinLobbyResponse']['Err'] == 'GameInProgress') {
-                    window.alert(errorResponseString + 'Game is in progress.');
+                    createAlert(errorResponseString + 'Game is in progress.');
                 } else if (object['JoinLobbyResponse']['Err'] == 'EmptyPlayerName') {
-                    window.alert(errorResponseString + 'Player name cannot be empty.');
+                    createAlert(errorResponseString + 'Player name cannot be empty.');
                 } else if (object['JoinLobbyResponse']['Err'] == 'PlayerNameTooLong') {
-                    window.alert(errorResponseString + 'Player name is too long. Please enter a player name that is <= 20 characters.');
+                    createAlert(errorResponseString + 'Player name is too long. Please enter a player name that is <= 20 characters.');
                 } else {
-                    window.alert(errorResponseString + 'Unknown error.');
+                    createAlert(errorResponseString + 'Unknown error.');
                 }
             }
         } else if ('ListLobbiesResponse' in object) {
@@ -107,15 +107,15 @@ socket.addEventListener('message', function (event) {
             } else if ('Err' in object['RequestAiResponse']) {
                 var errorResponseString = 'Error requesting AI: ';
                 if (object['RequestAiResponse']['Err'] == 'NotLobbyOwner') {
-                    window.alert(errorResponseString + 'Only the lobby owner can request an AI (you\'re not the lobby owner).');
+                    createAlert(errorResponseString + 'Only the lobby owner can request an AI (you\'re not the lobby owner).');
                 } else if (object['RequestAiResponse']['Err'] == 'LessThanOneAiRequested') {
-                    window.alert(errorResponseString + 'You must request at least one AI.');
+                    createAlert(errorResponseString + 'You must request at least one AI.');
                 } else if (object['RequestAiResponse']['Err'] == 'LobbyNotFound') {
-                    window.alert(errorResponseString + 'Lobby could not be found (it may be expired).');
+                    createAlert(errorResponseString + 'Lobby could not be found (it may be expired).');
                 } else if (object['RequestAiResponse']['Err'] == 'LobbyTooSmall') {
-                    window.alert(errorResponseString + 'Not enough space in lobby.');
+                    createAlert(errorResponseString + 'Not enough space in lobby.');
                 } else {
-                    window.alert(errorResponseString + 'Unknown error.');
+                    createAlert(errorResponseString + 'Unknown error.');
                 }
             }
         } else if ('StartGameResponse' in object) {
@@ -124,15 +124,15 @@ socket.addEventListener('message', function (event) {
             } else if ('Err' in object['StartGameResponse']) {
                 var errorResponseString = 'Error starting game: ';
                 if (object['StartGameResponse']['Err'] == 'LobbyNotFound') {
-                    window.alert(errorResponseString + 'Lobby not found (might be expired).');
+                    createAlert(errorResponseString + 'Lobby not found (might be expired).');
                 } else if (object['StartGameResponse']['Err'] == 'NotLobbyOwner') {
-                    window.alert(errorResponseString + 'Only the lobby owner can start the game (you\'re not the lobby owner).');
+                    createAlert(errorResponseString + 'Only the lobby owner can start the game (you\'re not the lobby owner).');
                 } else if (object['StartGameResponse']['Err'] == 'LessThanTwoPlayers') {
-                    window.alert(errorResponseString + 'There must be at least two players to start the game.');
+                    createAlert(errorResponseString + 'There must be at least two players to start the game.');
                 } else if (object['StartGameResponse']['Err'] == 'GameInProgress') {
-                    window.alert(errorResponseString + 'This game is already in progress.');
+                    createAlert(errorResponseString + 'This game is already in progress.');
                 } else {
-                    window.alert(errorResponseString + 'Unknown error.');
+                    createAlert(errorResponseString + 'Unknown error.');
                 }
             }
         } else if ('GameStartEvent' in object) {
@@ -158,8 +158,7 @@ socket.addEventListener('message', function (event) {
                 turnEndTime = new Date();
                 turnEndTime.setSeconds(Math.floor(turnEndTime.getSeconds()) + turnLength);
             }
-            // curPhase = object['PubliclatestGameStateEvent']['cur_phase']; // setup, play, complete
-/*             hands = object['PubliclatestGameStateEvent']['hands'];
+            /* hands = object['PubliclatestGameStateEvent']['hands'];
             faceUpThree = object['PubliclatestGameStateEvent']['face_up_three'];
             faceDownThree = object['PubliclatestGameStateEvent']['face_down_three'];
             topCard = object['PubliclatestGameStateEvent']['top_card'];
@@ -178,11 +177,11 @@ socket.addEventListener('message', function (event) {
             } else if ('Err' in object['SpectateLobbyResponse']) {
                 var errorResponseString = 'Error spectating game: ';
                 if (object['SpectateStartGameResponse']['Err'] == 'LobbyNotFound') {
-                    window.alert(errorResponseString + 'Lobby not found (might be expired).');
+                    createAlert(errorResponseString + 'Lobby not found (might be expired).');
                 } else if (object['SpectateStartGameResponse']['Err'] == 'SpectateLobbyFull') {
-                    window.alert(errorResponseString + 'Spectator lobby is full.');
+                    createAlert(errorResponseString + 'Spectator lobby is full.');
                 } else {
-                    window.alert(errorResponseString + 'Unknown error.');
+                    createAlert(errorResponseString + 'Unknown error.');
                 }
             }
         } else if ('SpectateGameStartEvent' in object) {
@@ -196,6 +195,8 @@ socket.addEventListener('message', function (event) {
             document.getElementById('spectator-count').innerText = 'Spectators: ' + numSpectators;
         } else if ('HandEvent' in object) {
             hand = object['HandEvent'];
+        } else if ('GameCompleteEvent' in object) {
+
         } else {
             console.log("Unknown object: ");
             console.log(object);
@@ -225,13 +226,13 @@ function loadEventListeners() {
         }
 
         if (lobbyName == '' || playerName == '') {
-            window.alert('Error creating lobby.\nPlease make sure to fill out all required fields.');
+            createAlert('Error creating lobby.\nPlease make sure to fill out all required fields.');
         } else if (maxPlayers < 2 || maxPlayers > 8) {
-            window.alert('Error creating lobby.\nPlease enter a max players amount between 2 and 8 (inclusive).');
+            createAlert('Error creating lobby.\nPlease enter a max players amount between 2 and 8 (inclusive).');
         } else if (document.getElementById('private-checkbox').checked && password == '') {
-            window.alert('Error creating lobby.\nFor a private lobby, please enter a password.');
+            createAlert('Error creating lobby.\nFor a private lobby, please enter a password.');
         } else if (turnLength < 0 || turnLength > 255) {
-            window.alert('Error creating lobby.\nPlease entera turn timer length between 0 and 255 (inclusive).\(Note: 0 means no turn limit.)');
+            createAlert('Error creating lobby.\nPlease entera turn timer length between 0 and 255 (inclusive).\(Note: 0 means no turn limit.)');
         } else {
             var newLobbyBlob = new Blob(
                 [JSON.stringify(
@@ -303,6 +304,23 @@ function loadEventListeners() {
     document.getElementById('refresh-lobbies-button').addEventListener('click', function() {
         retrieveLobbies();
     });
+
+    document.getElementById('overlay-div').addEventListener('click', function() {
+        if (event.target && !document.getElementById('overlay-text').contains(event.target)) {
+            document.getElementById('overlay-div').style.display = 'none';
+        }
+    });
+}
+
+function createAlert(message) {
+    message = '<p>' + message + '</p><p><button id="close-overlay-button">OK</button></p>'
+    document.getElementById('overlay-text').innerHTML = message;
+
+    document.getElementById('close-overlay-button').addEventListener('click', function() {
+        document.getElementById('overlay-div').style.display = 'none';
+    });
+
+    document.getElementById('overlay-div').style.display = 'flex';
 }
 
 function retrieveLobbies() {
@@ -608,7 +626,9 @@ function updateGameScreen() {
         newHtml += '</div>';
     }
 
-    newHtml += '<div class="spectator-count"><span class="spectator-count-span" id="num-spectators">Spectators: ' + numSpectators + '</span></div>';
+    newHtml += '<div class="spectator-count"><span class="spectator-count-span" id="spectator-count">Spectators: ' + numSpectators + '</span></div>';
+
+    newHtml += '<div class="overlay" id="overlay-div"><div class="overlay-text" id="overlay-text"></span></div>';
 
     document.getElementById('landing').innerHTML = newHtml;
 
