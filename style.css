@@ -1,7 +1,12 @@
+body {
+    height: 100%;
+}
+
 body#landing {
     display: flex;
     flex-direction: column;
     align-content: center;
+    height: 100%;
 }
 
 @font-face {
@@ -148,8 +153,19 @@ img.card-disabled:hover {
     cursor: not-allowed;
 }
 
-span#join-lobby {
+span#join-lobby, span#spectate-link {
     cursor: pointer;
     color: blue;
     text-decoration: underline;
+}
+
+div.spectator-count {
+    position: relative;
+}
+
+span.spectator-count-span {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: white;
 }
