@@ -28,10 +28,10 @@
       <p>
         <form id="create-lobby-form">
           <div class="create-lobby-item">
-            Lobby Name: <input type="text" name="lobbyname" id="lobby-name-input" required="true">
+            Lobby Name: <input type="text" name="lobbyname" id="lobby-name-input" required="true" maxlength="20">
           </div>
           <div class="create-lobby-item">
-            Your Name: <input type="text" name="ownername" id="owner-name-input" required="true">
+            Your Name: <input type="text" name="ownername" id="owner-name-input" required="true" maxlength="20">
           </div>
           <div class="create-lobby-item">
             Max Players: <input id="max-players-input" type="number" name="maxplayers" min="2" max="8" step="1" required="true">
@@ -44,7 +44,7 @@
             Private? <input type="checkbox" name="private" id='private-checkbox'>
           </div>
           <div class="create-lobby-item">
-            Password: <input type="password" name="password" id='password-input' disabled>
+            Password: <input type="password" name="password" id='password-input' maxlength="20" disabled>
           </div>
           <div class="create-lobby-item">
             <button type="button" id="create-lobby-button">Create Lobby</button>

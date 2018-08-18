@@ -58,6 +58,12 @@ socket.addEventListener('message', function (event) {
                     window.alert(errorResponseString + 'Lobby name cannot be empty.');
                 } else if (object['NewLobbyResponse']['Err'] == 'EmptyPlayerName') {
                     window.alert(errorResponseString + 'Player name cannot be empty.');
+                } else if (object['NewLobbyResponse']['Err'] == 'LobbyNameTooLong') {
+                    window.alert(errorResponseString + 'Lobby name is too long. Please enter a lobby name that is <= 20 characters.');
+                } else if (object['NewLobbyResponse']['Err'] == 'PlayerNameTooLong') {
+                    window.alert(errorResponseString + 'Player name is too long. Please enter a player name that is <= 20 characters.');
+                } else if (object['NewLobbyResponse']['Err'] == 'PasswordTooLong') {
+                    window.alert(errorResponseString + 'Password is too long. Please enter a password that is <= 20 characters.');
                 } else {
                     window.alert(errorResponseString + 'Unknown error.');
                 }
@@ -79,6 +85,8 @@ socket.addEventListener('message', function (event) {
                     window.alert(errorResponseString + 'Game is in progress.');
                 } else if (object['JoinLobbyResponse']['Err'] == 'EmptyPlayerName') {
                     window.alert(errorResponseString + 'Player name cannot be empty.');
+                } else if (object['JoinLobbyResponse']['Err'] == 'PlayerNameTooLong') {
+                    window.alert(errorResponseString + 'Player name is too long. Please enter a player name that is <= 20 characters.');
                 } else {
                     window.alert(errorResponseString + 'Unknown error.');
                 }
