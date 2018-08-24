@@ -395,6 +395,7 @@ function updateLobbiesTable(lobbies) {
             getAgeString(lobbies[i]['age']),
             lobbies[i]['started'] ? 'In Progress (' + spectateLink + ')' : 'Waiting to Begin (' + spectateLink + ')',
             lobbies[i]['cur_spectators'],
+            lobbies[i]['games_completed'],
         ];
     }
 
@@ -408,6 +409,7 @@ function updateLobbiesTable(lobbies) {
             "Lobby Age",
             "Game Status",
             "Spectators",
+            "Games Completed",
         ],
         "data": rows
     };
