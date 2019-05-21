@@ -20,7 +20,7 @@ timerIsActive = false;
 turnEndTime = null;
 numSpectators = 0;
 
-socket = new WebSocket("wss://dev.brick.codes/palace");
+socket = new WebSocket("ws://127.0.0.1:3012");
 
 function init() {
     if (somethingLoaded) {
@@ -326,7 +326,13 @@ function createAlert(message) {
 function retrieveLobbies() {
 
     var listLobbiesBlob = new Blob(
-        [JSON.stringify("ListLobbies")],
+        [JSON.stringify(
+           {
+              "ListLobbies": {
+                 "page": 0,
+              }
+           }
+         )],
         {type:'application/json'}
     );
 
