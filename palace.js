@@ -20,7 +20,7 @@ timerIsActive = false;
 turnEndTime = null;
 numSpectators = 0;
 
-socket = new WebSocket("ws://127.0.0.1:3012");
+socket = new WebSocket("wss://dev.brick.codes/palace");
 
 function init() {
     if (somethingLoaded) {
