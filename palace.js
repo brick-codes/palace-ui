@@ -94,7 +94,7 @@ socket.addEventListener('message', function (event) {
                 }
             }
         } else if ('ListLobbiesResponse' in object) {
-            updateLobbiesTable(object['ListLobbiesResponse']);
+            updateLobbiesTable(object['ListLobbiesResponse']['lobbies']);
         } else if ('PlayerJoinEvent' in object) {
             var startButton = document.getElementById('start-game-button');
             if (startButton != null) {
